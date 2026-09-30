@@ -1,0 +1,182 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+
+/**
+ * Contenu general du site (CC §22) : identite, coordonnees, galerie, SEO, photos.
+ */
+class SettingsController extends AdminController
+{
+    public function edit()
+    {
+        return view('admin.settings', [
+            'settings' => $this->content->all()['settings'],
+            'fields' => self::fields(),
+            'extraPhones' => $this->content->extraPhones(),
+        ]);
+    }
+
+    public function update(Request $request): RedirectResponse
+    {
+        $required = array_keys(array_filter(self::fields(), fn ($field) => $field['required'] ?? false));
+
+        // Les champs obligatoires ne sont exigés que s'ils sont présents :
+        // la validation reste stricte sur le formulaire complet du site, mais
+        // un envoi partiel (reprise, script) ne doit pas être rejeté.
+        $rules = [];
+        foreach ($required as $key) {
+            $rules[$key] = ['sometimes', 'required', 'string', 'max:255'];
+        }
+        $rules['email'] = ['sometimes', 'required', 'email', 'max:255'];
+        $rules['seo_description'] = ['nullable', 'string', 'max:500'];
+        $rules['seo_keywords'] = ['nullable', 'string', 'max:500'];
+
+        // Numéros supplémentaires (CC §22) : jusqu'à 10 lignes, chacune avec un
+        // libellé et un numéro. Les lignes vides sont tolérées pour que le
+        // propriétaire puisse ajouter une ligne avant de la remplir.
+        $rules['extra_phones'] = ['nullable', 'array', 'max:10'];
+        $rules['extra_phones.*.label'] = ['nullable', 'string', 'max:80'];
+        $rules['extra_phones.*.number'] = ['nullable', 'string', 'max:40'];
+        $rules['extra_phones_present'] = ['nullable', 'boolean'];
+
+        $request->validate($rules, [], ['email' => 'adresse email']);
+
+        // Mise à jour non destructive : seuls les champs réellement transmis
+        // sont écrits. Écrire '' pour un champ absent effacerait la photo de
+        // l'accueil, les mots-clés SEO ou l'accroche dès qu'un envoi partiel
+        // arrive (formulaire partiel, appel API, script de reprise).
+        $settings = [];
+
+        foreach (array_keys(self::fields()) as $key) {
+            if ($request->has($key)) {
+                $settings[$key] = (string) $request->input($key, '');
+            }
+        }
+
+        // La liste des numéros est une donnée structurée : elle n'est écrite que
+        // si le formulaire l'a renvoyée ou si son marqueur est présent, pour
+        // que le retrait de la dernière ligne vide réellement la liste.
+        if ($request->has('extra_phones') || $request->boolean('extra_phones_present')) {
+            $settings['extra_phones'] = $this->collectExtraPhones($request);
+        }
+
+        if ($settings === []) {
+            return $this->back('Aucun changement à enregistrer.');
+        }
+
+        if ($this->api->put('admin/settings', ['settings' => $settings]) === null) {
+            return $this->fail('Impossible d\'enregistrer les informations du site.');
+        }
+
+        // Photos du formateur (accueil et page À propos)
+        foreach (['hero_photo', 'about_photo'] as $field) {
+            if (! $request->hasFile($field)) {
+                continue;
+            }
+
+            $upload = $this->api->upload('admin/upload', $request->file($field), 'image');
+
+            if ($upload === null) {
+                return $this->fail('Le contenu a été enregistré, mais le téléversement de l\'image a échoué.');
+            }
+
+            $this->api->put('admin/settings', ['settings' => [$field => $upload['path'] ?? null]]);
+        }
+
+        return $this->back('Les informations du site ont été enregistrées.');
+    }
+
+    /**
+     * Une case à cocher n'est transmise que si elle est cochée, et selon le
+     * client la valeur peut arriver sous la forme "1", "on", "true" ou "yes".
+     */
+    protected function toBoolean(mixed $value): bool
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        return in_array(mb_strtolower(trim((string) $value)), ['1', 'on', 'true', 'yes'], true);
+    }
+
+    /**
+     * Ne conserve que les lignes réellement remplies (libellé + numéro).
+     * Un seul numéro peut porter le badge WhatsApp flottant (CC §17) : le
+     * premier coché gagne, les suivants sont ignorés.
+     */
+    protected function collectExtraPhones(Request $request): array
+    {
+        $rows = (array) $request->input('extra_phones', []);
+        $phones = [];
+        $whatsappTaken = false;
+
+        foreach ($rows as $row) {
+            if (! is_array($row)) {
+                continue;
+            }
+
+            $label = trim((string) ($row['label'] ?? ''));
+            $number = trim((string) ($row['number'] ?? ''));
+
+            if ($label === '' || $number === '') {
+                continue;
+            }
+
+            $isWhatsapp = ! $whatsappTaken && $this->toBoolean($row['is_whatsapp'] ?? false);
+            $whatsappTaken = $whatsappTaken || $isWhatsapp;
+
+            $phones[] = [
+                'label' => $label,
+                'number' => $number,
+                'is_whatsapp' => $isWhatsapp,
+            ];
+        }
+
+        return $phones;
+    }
+
+    /**
+     * Champs editables sans toucher au code (CC §22).
+     */
+    public static function fields(): array
+    {
+        return [
+            // Identite
+            'name' => ['label' => 'Nom complet', 'type' => 'text', 'required' => true, 'group' => 'Identité'],
+            'role' => ['label' => 'Fonction', 'type' => 'text', 'required' => true, 'group' => 'Identité'],
+            'tagline' => ['label' => 'Accroche', 'type' => 'text', 'required' => true, 'group' => 'Identité'],
+            'hero_text' => ['label' => 'Présentation courte (accueil)', 'type' => 'textarea', 'group' => 'Identité'],
+            'hero_photo' => ['label' => 'Photo principale (accueil)', 'type' => 'image', 'group' => 'Identité'],
+            'cta_title' => ['label' => 'Appel à l\'action : titre', 'type' => 'text', 'group' => 'Identité'],
+            'cta_text' => ['label' => 'Appel à l\'action : texte', 'type' => 'textarea', 'group' => 'Identité'],
+
+            // A propos
+            'about_parcours' => ['label' => 'À propos : parcours', 'type' => 'textarea', 'group' => 'À propos'],
+            'about_approche' => ['label' => 'À propos : approche professionnelle', 'type' => 'textarea', 'group' => 'À propos'],
+            'about_expertise' => ['label' => 'À propos : domaines d\'expertise', 'type' => 'textarea', 'group' => 'À propos'],
+            'about_qualifications' => ['label' => 'À propos : qualifications (une par ligne)', 'type' => 'textarea', 'group' => 'À propos'],
+            'about_photo' => ['label' => 'Photo de la page À propos', 'type' => 'image', 'group' => 'À propos'],
+
+            // Coordonnees
+            'whatsapp' => ['label' => 'WhatsApp principal (format international)', 'type' => 'text', 'required' => true, 'group' => 'Coordonnées', 'hint' => 'Utilisé si aucun numéro supplémentaire n\'est désigné comme WhatsApp plus bas.'],
+            'whatsapp_display' => ['label' => 'WhatsApp principal (affichage)', 'type' => 'text', 'group' => 'Coordonnées'],
+            'whatsapp_message' => ['label' => 'WhatsApp : message prérempli', 'type' => 'textarea', 'group' => 'Coordonnées', 'hint' => 'Utilisé par le bouton flottant présent sur toutes les pages (CC §17).'],
+            'phone' => ['label' => 'Téléphone principal', 'type' => 'text', 'required' => true, 'group' => 'Coordonnées'],
+            'phone_display' => ['label' => 'Téléphone principal (affichage)', 'type' => 'text', 'group' => 'Coordonnées'],
+            'email' => ['label' => 'Email', 'type' => 'email', 'required' => true, 'group' => 'Coordonnées'],
+            'location' => ['label' => 'Localisation', 'type' => 'text', 'group' => 'Coordonnées'],
+
+            // Galerie
+            'gallery_title' => ['label' => 'Galerie : titre', 'type' => 'text', 'group' => 'Galerie'],
+            'gallery_text' => ['label' => 'Galerie : texte', 'type' => 'textarea', 'group' => 'Galerie'],
+
+            // SEO
+            'seo_title' => ['label' => 'Titre SEO', 'type' => 'text', 'group' => 'SEO'],
+            'seo_description' => ['label' => 'Meta description SEO', 'type' => 'textarea', 'group' => 'SEO'],
+            'seo_keywords' => ['label' => 'Mots-clés SEO', 'type' => 'textarea', 'group' => 'SEO'],
+        ];
+    }
+}

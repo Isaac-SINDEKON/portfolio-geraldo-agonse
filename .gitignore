@@ -1,0 +1,59 @@
+# ---------------------------------------------------------------------------
+# Portfolio Geraldo Perridys AGONSE
+# Depot de code source (cahier des charges, section 33).
+# Regle generale : tout ce que l'installateur peut regenerer est exclu,
+# tout ce qui est du contenu livrable est conserve.
+# ---------------------------------------------------------------------------
+
+# --- Dependances reinstallees par installer.ps1 ------------------------------
+node_modules/
+vendor/
+
+# --- Configuration locale (contient APP_KEY et les mots de passe) -----------
+# Ne jamais versionner : `git status` doit rester propre et le .env de
+# production n'a rien a faire dans un depot.
+.env
+.env.*
+!.env.example
+
+# --- Liens symboliques crees par `artisan storage:link` ----------------------
+**/public/storage
+
+# --- Fichiers generes a l'execution ----------------------------------------
+*.log
+**/storage/logs/*
+**/storage/framework/cache/*
+**/storage/framework/sessions/*
+**/storage/framework/views/*
+**/storage/pail/*
+**/bootstrap/cache/*.php
+!**/.gitignore
+
+# --- Sauvegardes et base de donnees -----------------------------------------
+# Contiennent des demandes de contact et des coordonnees : donnees
+# personnelles, hors depot. Les sauvegardes restent dans
+# backend/storage/backups, a copier manuellement.
+**/storage/backups/*
+*.sqlite
+*.sqlite-journal
+*.sql
+
+# --- Assets compiles ---------------------------------------------------------
+# Regeneres par `npm run build` dans installer.ps1.
+**/public/build/
+**/public/hot/
+
+# --- Cles, jetons et caches d'outils -----------------------------------------
+*.key
+auth.json
+.phpunit.result.cache
+.phpunit.cache
+
+# --- Editeurs et systeme ----------------------------------------------------
+.idea/
+.vscode/
+.zed/
+.nova/
+.fleet/
+.DS_Store
+Thumbs.db

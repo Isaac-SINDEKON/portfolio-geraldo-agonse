@@ -1,0 +1,174 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+/*
+|--------------------------------------------------------------------------
+| Identité visuelle (CC §19)
+|--------------------------------------------------------------------------
+| Couleur principale  : indigo  -> professionnalisme, confiance
+| Couleur secondaire  : slate  -> lisibilité, sobriété
+| Couleur d'accent    : emerald-> action, WhatsApp, validation
+| Fond                 : blanc / slate-50
+| Texte                : slate-700 / slate-900
+*/
+
+@theme {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* Ombre douce utilisée par .btn, .card (CC §18) */
+    --shadow-soft: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 8px 24px -12px rgb(15 23 42 / 0.12);
+
+    --color-primary-50: #eef2ff;
+    --color-primary-100: #e0e7ff;
+    --color-primary-200: #c7d2fe;
+    --color-primary-300: #a5b4fc;
+    --color-primary-400: #818cf8;
+    --color-primary-500: #6366f1;
+    --color-primary-600: #4f46e5;
+    --color-primary-700: #4338ca;
+    --color-primary-800: #3730a3;
+    --color-primary-900: #312e81;
+
+    --color-accent-500: #10b981;
+    --color-accent-600: #059669;
+
+    --color-whatsapp: #25d366;
+}
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+
+    /* Évite le clignotement des éléments Alpine avant initialisation */
+    [x-cloak] {
+        display: none !important;
+    }
+
+    body {
+        @apply bg-white text-slate-700 antialiased;
+    }
+
+    h1, h2, h3, h4 {
+        @apply text-slate-900 font-bold tracking-tight;
+    }
+}
+
+@layer components {
+    .container-x {
+        @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+    }
+
+    /*
+    | En Tailwind v4, @apply ne résout pas une classe déclarée dans
+    | @layer components. Les styles de base du bouton sont donc partagés via
+    | une liste de sélecteurs, et non via "@apply btn".
+    */
+    .btn,
+    .btn-primary,
+    .btn-whatsapp,
+    .btn-accent,
+    .btn-danger,
+    .btn-outline,
+    .btn-light,
+    .btn-ghost {
+        @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition
+            focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
+            disabled:pointer-events-none disabled:opacity-60;
+    }
+
+    .btn-primary {
+        @apply bg-primary-600 text-white shadow-soft hover:bg-primary-700;
+    }
+
+    .btn-whatsapp {
+        @apply bg-whatsapp text-white shadow-soft hover:bg-[#1eb855];
+    }
+
+    .btn-accent {
+        @apply bg-accent-600 text-white shadow-soft hover:bg-accent-500;
+    }
+
+    .btn-danger {
+        @apply border border-red-200 bg-white text-red-700 hover:bg-red-50;
+    }
+
+    .btn-outline {
+        @apply border border-slate-300 bg-white text-slate-800 hover:border-primary-500 hover:text-primary-700;
+    }
+
+    .btn-light {
+        @apply border border-white/50 text-white hover:bg-white/10;
+    }
+
+    .btn-ghost {
+        @apply text-slate-600 hover:bg-slate-100 hover:text-slate-900;
+    }
+
+    .card {
+        @apply rounded-2xl border border-slate-200 bg-white p-6 shadow-soft;
+    }
+
+    .eyebrow {
+        @apply text-xs font-bold tracking-[0.18em] text-primary-600 uppercase;
+    }
+
+    .label-eyebrow {
+        @apply text-xs font-bold tracking-[0.18em] uppercase;
+    }
+
+    .field-label {
+        @apply mb-1.5 block text-sm font-semibold text-slate-700;
+    }
+
+    .field {
+        @apply w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800
+            placeholder:text-slate-400
+            focus:border-primary-500 focus:ring-2 focus:ring-primary-100 focus:outline-none;
+    }
+
+    /* État invalide d'un champ de formulaire */
+    .field-error {
+        @apply border-red-400 focus:border-red-500 focus:ring-red-100;
+    }
+
+    .field-message {
+        @apply mt-1 text-xs font-medium text-red-600;
+    }
+
+    .prose-soft p {
+        @apply leading-relaxed;
+    }
+}
+
+@layer utilities {
+    /* Animations légères (CC §21) */
+    .animate-rise {
+        animation: rise 0.5s ease-out both;
+    }
+
+    .stagger > * {
+        animation: rise 0.45s ease-out both;
+    }
+
+    .stagger > *:nth-child(1) { animation-delay: 0.05s; }
+    .stagger > *:nth-child(2) { animation-delay: 0.10s; }
+    .stagger > *:nth-child(3) { animation-delay: 0.15s; }
+    .stagger > *:nth-child(4) { animation-delay: 0.20s; }
+}
+
+@keyframes rise {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
