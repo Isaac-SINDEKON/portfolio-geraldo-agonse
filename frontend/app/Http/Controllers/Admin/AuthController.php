@@ -71,11 +71,22 @@ class AuthController extends AdminController
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ], [
             'current_password.required' => 'Le mot de passe actuel est obligatoire.',
+            'password.required' => 'Le nouveau mot de passe est obligatoire.',
             'password.min' => 'Le nouveau mot de passe doit contenir au moins 8 caractères.',
             'password.confirmed' => 'La confirmation ne correspond pas au nouveau mot de passe.',
         ]);
 
-        $response = $this->api->post('auth/change-password', $validated);
+        // La regle « confirmed » verifie la confirmation cote formulaire, mais
+        // Laravel ne la place pas dans les donnees validees. Or l'API applique
+        // elle-meme cette regle : sans password_confirmation dans la charge
+        // utile, elle repond 422, le mot de passe n'est jamais ecrit, et
+        // l'administrateur ne peut plus se connecter. Elle doit donc etre
+        // transmise explicitement.
+        $payload = $validated + [
+            'password_confirmation' => (string) $request->input('password_confirmation'),
+        ];
+
+        $response = $this->api->post('auth/change-password', $payload);
 
         // Le message doit etre lu avant l'invalidation de session (flush des flashes).
         $errorMessage = $response === null

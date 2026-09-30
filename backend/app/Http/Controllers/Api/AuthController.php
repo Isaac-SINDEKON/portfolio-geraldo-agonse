@@ -56,18 +56,34 @@ class AuthController extends Controller
 
     public function changePassword(Request $request): JsonResponse
     {
-        $request->validate([
+        // Les messages sont explicites : le backend n'embarque pas de fichier
+        // de langue, donc sans eux l'API renverrait « validation.confirmed ».
+        $validated = $request->validate([
             'current_password' => ['required', 'string'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ], [
+            'current_password.required' => 'Le mot de passe actuel est obligatoire.',
+            'password.required' => 'Le nouveau mot de passe est obligatoire.',
+            'password.min' => 'Le nouveau mot de passe doit contenir au moins 8 caractères.',
+            'password.confirmed' => 'La confirmation ne correspond pas au nouveau mot de passe.',
         ]);
 
         $user = $request->user();
 
-        if (! Hash::check($request->current_password, $user->password)) {
-            return response()->json(['message' => 'Mot de passe actuel incorrect.'], 422);
+        if (! Hash::check($validated['current_password'], $user->password)) {
+            return response()->json([
+                'message' => 'Mot de passe actuel incorrect.',
+                'errors' => ['current_password' => ['Mot de passe actuel incorrect.']],
+            ], 422);
         }
 
-        $user->password = $request->password;
+        if (Hash::check($validated['password'], $user->password)) {
+            return response()->json([
+                'message' => 'Le nouveau mot de passe doit être différent de l\'actuel.',
+            ], 422);
+        }
+
+        $user->password = $validated['password'];
         $user->save();
 
         $user->tokens()->delete();

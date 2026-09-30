@@ -83,7 +83,19 @@ L'administration permet de modifier, sans toucher au code :
 - les photos de galerie et les photos de profil ;
 - les demandes reçues (demandes de formation et devis).
 
-Les accès se changent depuis **Tableau de bord → Changer le mot de passe**.
+Les accès se changent depuis **Tableau de bord → Mot de passe** : le formulaire
+demande le mot de passe actuel, puis le nouveau saisi deux fois (8 caractères
+minimum). Par sécurité, toutes les sessions sont fermées et il faut se
+reconnecter avec le nouveau mot de passe.
+
+> Le mot de passe livré est `Admin@2026` : **changez-le à la première
+> connexion**. Un mot de passe oublié se réinitialise sans interface, en ligne
+> de commande :
+>
+> ```powershell
+> cd backend
+> php artisan tinker --execute="App\Models\User::find(1)->update(['password' => 'NouveauMotDePasse2026']);"
+> ```
 
 ---
 
@@ -91,10 +103,36 @@ Les accès se changent depuis **Tableau de bord → Changer le mot de passe**.
 
 ```powershell
 cd backend
-php backup_database.php
+php backup_database.php          # sauvegarder
+php backup_database.php --list   # voir les sauvegardes disponibles
 ```
 
-Produit `backend/storage/backups/geraldo_portfolio_AAAA-MM-JJ_HH-MM-SS.sql`.
+Chaque sauvegarde produit **deux fichiers indissociables** :
+
+| Fichier | Contenu |
+|---|---|
+| `geraldo_portfolio_AAAA-MM-JJ_HH-MM-SS.sql` | tables et données (textes, formations, coordonnées, demandes) |
+| `geraldo_portfolio_AAAA-MM-JJ_HH-MM-SS_photos.zip` | photos de la galerie et photo de profil |
+
+> **Pourquoi deux fichiers ?** La base ne memorise que le *chemin* d'une image
+> (`uploads/xxx.jpg`), pas l'image elle-même. Restaurer le SQL seul laisserait
+> la galerie et la photo de profil vides sur le site. Conservez toujours les
+> deux, et `--list` signale les sauvegardes dont le ZIP est absent.
+
+### Restauration
+
+```powershell
+cd backend
+php backup_database.php --restore storage\backups\geraldo_portfolio_AAAA-MM-JJ_HH-MM-SS.sql
+```
+
+Restaure la base **et** les photos en une commande, à partir du seul fichier
+SQL (le ZIP est retrouvé automatiquement s'il porte le même nom). Le script
+refuse les chemins contenant `..`.
+
+> Après une restauration, relancez `.\demarrer.ps1` pour recréer le lien
+> `public/storage`.
+
 À automatiser quotidiennement dès la mise en ligne.
 
 ---
@@ -106,12 +144,19 @@ Les deux serveurs doivent tourner :
 ```powershell
 php verify_cc.php                    # conformité au cahier des charges
 php backend\verify_api.php           # audit de l'API backend
+php backend\verify_password.php      # changement de mot de passe administrateur
 php frontend\verify_frontend.php     # site public et administration
 php frontend\verify_extra_phones.php # numéros supplémentaires et WhatsApp
 ```
 
 État au dernier passage : `90 conformes / 0 à corriger / 12 à valider`,
-`42/0` côté API, `121/0` côté frontend, `29/0` côté numéros.
+`42/0` côté API, `15/0` côté mot de passe, `121/0` côté frontend, `29/0` côté
+numéros.
+
+> **Audit du mot de passe.** `verify_password.php` crée un compte
+> administrateur temporaire, joue le changement de mot de passe de bout en
+> bout, puis supprime le compte. Il ne touche jamais au vrai mot de passe :
+> le lancer sur une installation en production est sans risque.
 
 > **Téléphone des clients.** Le client choisit son pays puis saisit son numéro
 > national, et les deux sont conservés : l'indicatif change la conversion, donc
