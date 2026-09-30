@@ -110,8 +110,13 @@
 
 {{-- ============================= PETIT ÉCRAN =============================
      Même structure, dans un tiroir piloté par le bouton « trois traits ». --}}
-<div x-data="{ open: false }" class="lg:hidden">
-    <header class="sticky top-0 z-40 border-b border-slate-200 bg-white">
+{{-- Le sticky porte sur CE conteneur et non sur le <header> : le sticky est
+     borne par la hauteur de son parent, or ce wrapper ne contient que la
+     barre de 4rem (le tiroir etant en position fixed). En le collant au
+     wrapper, le parent est le conteneur min-h-screen du layout, qui est
+     aussi haut que la page : la barre suit donc vraiment le defilement. --}}
+<div x-data="{ open: false }" class="sticky top-0 z-40 lg:hidden">
+    <header class="border-b border-slate-200 bg-white">
         <div class="container-x flex h-16 items-center justify-between">
             <a href="{{ route('admin.dashboard') }}" class="flex min-w-0 items-center gap-3">
                 <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary-600 text-xs font-extrabold text-white">GA</span>

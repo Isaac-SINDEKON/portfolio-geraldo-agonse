@@ -102,23 +102,25 @@
                 </p>
                 <form method="POST" action="{{ route('admin.password.update') }}" class="mt-4 space-y-3">
                     @csrf
-                    <div>
-                        <label for="current_password" class="field-label">Mot de passe actuel</label>
-                        <input type="password" id="current_password" name="current_password"
-                               @class(['field', 'field-error' => $errors->has('current_password')]) required>
-                        @error('current_password') <p class="field-message">{{ $message }}</p> @enderror
-                    </div>
-                    <div>
-                        <label for="new_password" class="field-label">Nouveau mot de passe</label>
-                        <input type="password" id="new_password" name="password"
-                               @class(['field', 'field-error' => $errors->has('password')])
-                               minlength="8" required>
-                        @error('password') <p class="field-message">{{ $message }}</p> @enderror
-                    </div>
-                    <div>
-                        <label for="password_confirmation" class="field-label">Confirmer le nouveau mot de passe</label>
-                        <input type="password" id="password_confirmation" name="password_confirmation" class="field" minlength="8" required>
-                    </div>
+                    <x-password-field
+                        id="current_password"
+                        name="current_password"
+                        label="Mot de passe actuel"
+                        autocomplete="current-password" />
+
+                    <x-password-field
+                        id="new_password"
+                        name="password"
+                        label="Nouveau mot de passe"
+                        autocomplete="new-password"
+                        hint="8 caractères minimum." />
+
+                    <x-password-field
+                        id="password_confirmation"
+                        name="password_confirmation"
+                        label="Confirmer le nouveau mot de passe"
+                        autocomplete="new-password" />
+
                     <button type="submit" class="btn-primary w-full">Mettre à jour</button>
                 </form>
             </section>

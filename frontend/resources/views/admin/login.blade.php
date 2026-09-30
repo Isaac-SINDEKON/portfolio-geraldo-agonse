@@ -45,11 +45,11 @@
                 </div>
 
                 <div>
-                    <label for="password" class="field-label">Mot de passe</label>
-                    <input type="password" id="password" name="password"
-                           @class(['field', 'field-error' => $errors->has('password')])
-                           autocomplete="current-password" required>
-                    @error('password') <p class="field-message">{{ $message }}</p> @enderror
+                    <x-password-field
+                        id="password"
+                        name="password"
+                        label="Mot de passe"
+                        autocomplete="current-password" />
                 </div>
 
                 <button type="submit" class="btn-primary w-full">Se connecter</button>

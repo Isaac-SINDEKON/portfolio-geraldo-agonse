@@ -419,7 +419,40 @@ statut('33. Livrables', 'Site, interface d\'admin, formulaires, SEO, sauvegarde,
     is_file(__DIR__.'/README.md') && is_file(__DIR__.'/installer.ps1') && is_file(__DIR__.'/demarrer.ps1') ? 'OK' : 'KO',
     'README.md, installer.ps1, demarrer.ps1');
 statut('33. Livrables', 'Formation du propriétaire à l\'administration', 'OK', 'guide dans README.md');
-statut('33. Livrables', 'Code source / dépôt', 'A VALIDER', 'pas de dépôt Git pour l\'instant');
+// Le dépôt Git n'est pas un livrable du CC mais il protège le code : on vérifie
+// qu'il existe et qu'il contient au moins un commit, plutôt que de laisser une
+// mention « à valider » devenue fausse.
+//
+// Le nombre de commits est lu dans les fichiers de Git et non via un appel à
+// la ligne de commande : git n'est pas toujours dans le PATH de PHP.
+$nbCommits = 0;
+$branche = null;
+
+if (is_dir(__DIR__.'/.git')) {
+    $head = @file_get_contents(__DIR__.'/.git/HEAD');
+    $head = $head === false ? '' : trim($head);
+
+    // HEAD contient soit un sha direct (état détaché), soit « ref: refs/heads/... ».
+    if (str_starts_with($head, 'ref: ')) {
+        $branche = basename(substr($head, 5));
+        $fichierRef = __DIR__.'/.git/'.trim(substr($head, 5));
+
+        if (is_file($fichierRef)) {
+            $nbCommits = 1;
+        } elseif (is_file(__DIR__.'/.git/packed-refs')) {
+            // Branches empaquetées : on compte celles de la liste.
+            $nbCommits = preg_match_all('/^[0-9a-f]{40}\s+refs\/heads\//m', (string) file_get_contents(__DIR__.'/.git/packed-refs'));
+        }
+    } elseif (preg_match('/^[0-9a-f]{40}$/', $head)) {
+        $nbCommits = 1;
+    }
+}
+
+statut('33. Livrables', 'Code source / dépôt',
+    $nbCommits > 0 ? 'OK' : 'A VALIDER',
+    $nbCommits > 0
+        ? 'dépôt Git initialisé, branche '.$branche
+        : 'pas de dépôt Git');
 
 // 34 et 35 : contractuel
 statut('34. Propriété', 'Contrat précisant domaine, hébergement, accès, code et contenus', 'A VALIDER', 'à rédiger');

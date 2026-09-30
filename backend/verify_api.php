@@ -235,12 +235,25 @@ check('DELETE admin/domains/{id}', $c, 200, '');
 [$c, ] = call($kernel, 'GET', '/api/v1/admin/leads', [], $token);
 check('GET admin/leads', $c, 200, '');
 
+// L'ecriture doit etre prouvee, mais la valeur de production doit survivre a
+// l'audit : on memorise l'accroche reelle avant de la remplacer, puis on la
+// remet a la fin. Sans cette restauration, le site public affiche « Accroche
+// de test » sur l'accueil et le pied de page.
+[$c, $avant] = call($kernel, 'GET', '/api/v1/site');
+$taglineReel = (string) ($avant['settings']['tagline'] ?? '');
+
 [$c, ] = call($kernel, 'PUT', '/api/v1/admin/settings', [
     'settings' => ['tagline' => 'Accroche de test'],
 ], $token);
 check('PUT admin/settings', $c, 200, '');
 [$c, $site] = call($kernel, 'GET', '/api/v1/site');
 check('  -> accent mis a jour visible', ($site['settings']['tagline'] ?? '') === 'Accroche de test' ? 200 : 0, 200, '');
+
+[$c, ] = call($kernel, 'PUT', '/api/v1/admin/settings', [
+    'settings' => ['tagline' => $taglineReel],
+], $token);
+[$c, $siteApres] = call($kernel, 'GET', '/api/v1/site');
+check('  -> accroche de production restaure', ($siteApres['settings']['tagline'] ?? '') === $taglineReel ? 200 : 0, 200, mb_substr($taglineReel, 0, 60));
 
 // 11. Logout
 [$c, ] = call($kernel, 'POST', '/api/v1/auth/logout', [], $token);
