@@ -52,8 +52,14 @@
                         @php $imageUrl = $content->imageUrl($settings[$key] ?? null); @endphp
                         <div class="mt-3 flex flex-wrap items-center gap-4">
                             @if ($imageUrl)
+                                {{-- Un logo n'est pas une photo : contain evite de le
+                                     rogner dans l'apercu, comme dans l'affichage reel. --}}
                                 <img src="{{ $imageUrl }}" alt="{{ $field['label'] }}"
-                                     class="h-24 w-24 rounded-xl border border-slate-200 object-cover">
+                                     @class([
+                                         'h-24 w-24 rounded-xl border border-slate-200',
+                                         'object-contain p-1' => ($field['preview'] ?? null) === 'contain',
+                                         'object-cover' => ($field['preview'] ?? null) !== 'contain',
+                                     ])>
                             @endif
                             <label for="{{ $key }}-file" class="btn-outline cursor-pointer text-xs">
                                 <x-icon name="upload" class="h-4 w-4" />
@@ -63,6 +69,14 @@
                                    accept="image/jpeg,image/png,image/webp" class="sr-only">
                             <p class="text-xs text-slate-500">JPEG, PNG ou WebP, 5 Mo maximum.</p>
                         </div>
+
+                        @if ($imageUrl)
+                            <label for="{{ $key }}-remove" class="mt-3 flex w-fit cursor-pointer items-center gap-2 text-xs font-medium text-red-600 hover:text-red-700">
+                                <input type="checkbox" id="{{ $key }}-remove" name="{{ $key }}_remove" value="1"
+                                       class="h-4 w-4 rounded border-slate-300 text-red-600 focus:ring-red-500">
+                                Retirer l'image
+                            </label>
+                        @endif
                     @endif
                 @endforeach
 

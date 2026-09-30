@@ -69,7 +69,7 @@
                 {{-- Repli : initiales, si aucune photo de profil n'est téléversée (modifiable en administration) --}}
                 <div class="flex aspect-4/5 flex-col items-center justify-center gap-4 p-6 text-center"
                      x-show="failed || ! @js((bool) $aboutPhoto)">
-                    <span class="flex h-24 w-24 items-center justify-center rounded-full bg-primary-100 text-3xl font-extrabold text-primary-700">GA</span>
+                    <x-marque variante="portrait-clair" />
                     <p class="text-sm font-semibold text-slate-700">{{ $s['name'] ?? '' }}</p>
                     <p class="text-xs tracking-widest text-slate-400 uppercase">{{ $s['role'] ?? '' }}</p>
                 </div>

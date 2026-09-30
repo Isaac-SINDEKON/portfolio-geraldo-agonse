@@ -11,7 +11,7 @@
 <body class="flex min-h-screen items-center justify-center bg-primary-700 px-4 py-12">
     <div class="w-full max-w-md">
         <div class="text-center">
-            <span class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15 text-lg font-extrabold text-white">GA</span>
+            <x-marque variante="connexion" />
             <h1 class="mt-5 text-2xl font-extrabold text-white">Espace administration</h1>
             <p class="mt-2 text-sm text-primary-100">
                 {{ config('app.name') }}

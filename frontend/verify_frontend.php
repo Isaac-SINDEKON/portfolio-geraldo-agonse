@@ -729,6 +729,13 @@ $csrfReglages = $matches[1] ?? '';
 $champs = [];
 preg_match_all('/<input[^>]*name="([a-z0-9_]+)"[^>]*value="([^"]*)"/i', $page->body(), $inputs, PREG_SET_ORDER);
 foreach ($inputs as $input) {
+    // Les cases « retirer l'image » sont des actions, pas des valeurs : un
+    // navigateur ne les transmet que si elles sont cochees. Les renvoyer ici
+    // effacerait les photos a chaque simple enregistrement des reglages.
+    if (str_ends_with($input[1], '_remove')) {
+        continue;
+    }
+
     $champs[$input[1]] = html_entity_decode($input[2], ENT_QUOTES);
 }
 preg_match_all('/<textarea[^>]*name="([a-z0-9_]+)"[^>]*>(.*?)<\/textarea>/is', $page->body(), $areas, PREG_SET_ORDER);
@@ -752,6 +759,14 @@ check(
     str_contains(Http::get($frontend.'/a-propos')->body(), 'Audit')
 );
 
+// Un enregistrement ordinaire ne doit jamais effacer les images deja en place :
+// les cases « retirer l'image » ne sont transmises que si elles sont cochees.
+$photosApres = Http::acceptJson()->get($backend.'/api/v1/site')->json()['settings'] ?? [];
+
+check('Photos conservees apres enregistrement des reglages',
+    ($photosApres['hero_photo'] ?? '') !== '' && ($photosApres['about_photo'] ?? ''),
+    'hero : ['.($photosApres['hero_photo'] ?? '').'] about : ['.($photosApres['about_photo'] ?? '').']');
+
 // Restauration : meme jeu de champs, seule la localisation revient a sa
 // valeur d'origine. Le jeton CSRF de session reste valable.
 $champs['location'] = $original;
@@ -760,6 +775,56 @@ Http::withOptions(['cookies' => $jar])->asForm()->post($frontend.'/admin/contenu
 
 $restaure = Http::acceptJson()->get($backend.'/api/v1/site')->json()['settings']['location'] ?? '';
 check('Réglages d\'origine restaurés', $restaure === $original, 'valeur actuelle : '.$restaure);
+
+// ---------------------------------------------------------------------- Logo
+// Le logo est le même partout (site public et administration) et retombe sur
+// les initiales « GA » tant qu'aucun fichier n'est téléversé.
+$siteJson = Http::acceptJson()->get($backend.'/api/v1/site')->json();
+$logoOriginal = $siteJson['settings']['logo'] ?? '';
+$photoConnue = $siteJson['settings']['hero_photo'] ?? '';
+
+check('Champ de téléversement du logo dans les réglages',
+    (bool) preg_match('/<input[^>]*type="file"[^>]*name="logo"/', $page->body()));
+
+check('Repli sur les initiales quand aucun logo n\'est défini',
+    substr_count(Http::get($frontend.'/')->body(), '>GA<') === 3);
+
+if ($photoConnue !== '') {
+    // Un réglage logo valide est simulé avec le chemin d'une image déjà
+    // présente : cela teste l'affichage sans dépendre d'un téléversement.
+    $champs['logo'] = $photoConnue;
+
+    Http::withOptions(['cookies' => $jar])->asForm()->post($frontend.'/admin/contenu/reglages', $champs);
+
+    $avecLogo = Http::get($frontend.'/')->body();
+
+    check('Logo affiché sur le site public', str_contains($avecLogo, basename($photoConnue)));
+    check('Logo affiché dans l\'administration',
+        str_contains(Http::withOptions(['cookies' => $jar])->get($frontend.'/admin')->body(), basename($photoConnue)));
+    check('Logo affiché sur la page de connexion',
+        str_contains(Http::get($frontend.'/admin/login')->body(), basename($photoConnue)));
+    check('Initiales remplacées par le logo', ! str_contains($avecLogo, '>GA<'));
+
+    // Retrait : la case à cocher doit ramener le repli sur les initiales.
+    Http::withOptions(['cookies' => $jar])->asForm()->post($frontend.'/admin/contenu/reglages', [
+        '_token' => $csrfReglages,
+        'logo_remove' => '1',
+    ]);
+
+    $logoApresRetrait = Http::acceptJson()->get($backend.'/api/v1/site')->json()['settings']['logo'] ?? 'x';
+
+    check('Retrait du logo par la case à cocher', $logoApresRetrait === '', 'valeur actuelle : ['.$logoApresRetrait.']');
+    check('Initiales revenues après retrait',
+        substr_count(Http::get($frontend.'/')->body(), '>GA<') === 3);
+}
+
+$champs['logo'] = $logoOriginal;
+
+Http::withOptions(['cookies' => $jar])->asForm()->post($frontend.'/admin/contenu/reglages', $champs);
+
+$logoRestaure = Http::acceptJson()->get($backend.'/api/v1/site')->json()['settings']['logo'] ?? '';
+
+check('Logo d\'origine restauré', $logoRestaure === $logoOriginal, 'valeur actuelle : ['.$logoRestaure.']');
 
 // ------------------------------------------------------------------ Demandes
 $leads = Http::withOptions(['cookies' => $jar])->get($frontend.'/admin/demandes');

@@ -76,7 +76,7 @@
                     {{-- Repli : initiales, si aucune photo n'est téléversée ou si le fichier est introuvable --}}
                     <div class="flex h-full w-full flex-col items-center justify-center gap-4 p-6 text-center text-white"
                          x-show="failed || ! @js((bool) $heroPhoto)">
-                        <span class="flex h-24 w-24 items-center justify-center rounded-full bg-white/10 text-3xl font-extrabold">GA</span>
+                        <x-marque variante="portrait-sombre" />
                         <p class="text-sm text-primary-100">{{ $s['name'] ?? '' }}</p>
                         <p class="text-xs tracking-widest text-primary-300 uppercase">{{ $s['role'] ?? '' }}</p>
                     </div>

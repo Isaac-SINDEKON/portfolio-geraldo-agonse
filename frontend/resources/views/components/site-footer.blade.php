@@ -8,7 +8,7 @@
         <div class="grid gap-10 md:grid-cols-4">
             <div class="md:col-span-2">
                 <div class="flex items-center gap-3">
-                    <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-600 text-sm font-extrabold text-white">GA</span>
+                    <x-marque variante="entete" />
                     <span class="leading-tight">
                         <span class="block text-base font-bold text-white">{{ $site['settings']['name'] ?? 'Géraldo Perridys AGONSE' }}</span>
                         <span class="block text-xs text-slate-400">{{ $site['settings']['role'] ?? 'Formateur' }}</span>

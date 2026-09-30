@@ -63,7 +63,7 @@
 <aside class="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-slate-200 bg-white lg:flex">
     <a href="{{ route('admin.dashboard') }}"
        class="flex h-16 shrink-0 items-center gap-3 border-b border-slate-200 px-5 transition hover:bg-slate-50">
-        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary-600 text-xs font-extrabold text-white">GA</span>
+        <x-marque variante="navigation" />
         <span class="min-w-0 leading-tight">
             <span class="block truncate text-sm font-bold text-slate-900">Administration</span>
             <span class="block truncate text-xs text-slate-500">{{ config('app.name') }}</span>
@@ -119,7 +119,7 @@
     <header class="border-b border-slate-200 bg-white">
         <div class="container-x flex h-16 items-center justify-between">
             <a href="{{ route('admin.dashboard') }}" class="flex min-w-0 items-center gap-3">
-                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary-600 text-xs font-extrabold text-white">GA</span>
+                <x-marque variante="navigation" />
                 <span class="min-w-0 leading-tight">
                     <span class="block truncate text-sm font-bold text-slate-900">Administration</span>
                     <span class="block truncate text-xs text-slate-500">{{ config('app.name') }}</span>

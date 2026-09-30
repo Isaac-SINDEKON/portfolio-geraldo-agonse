@@ -15,7 +15,7 @@
     <div class="container-x">
         <div class="flex h-16 items-center justify-between sm:h-20">
             <a href="{{ route('home') }}" class="flex items-center gap-3">
-                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-600 text-sm font-extrabold text-white">GA</span>
+                <x-marque variante="entete" />
                 <span class="hidden leading-tight sm:block">
                     <span class="block text-sm font-bold text-slate-900">{{ $site['settings']['name'] ?? 'Géraldo Perridys AGONSE' }}</span>
                     <span class="block text-xs text-slate-500">{{ $site['settings']['role'] ?? 'Formateur' }}</span>

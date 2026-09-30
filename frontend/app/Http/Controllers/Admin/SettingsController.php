@@ -42,6 +42,13 @@ class SettingsController extends AdminController
         $rules['extra_phones.*.number'] = ['nullable', 'string', 'max:40'];
         $rules['extra_phones_present'] = ['nullable', 'boolean'];
 
+        // Retrait d'une image : une case à cocher dédiée par champ image,
+        // car un input file vide n'est jamais transmis par le navigateur et ne
+        // peut donc pas servir à effacer la valeur enregistrée.
+        foreach ($this->imageFields() as $field) {
+            $rules[$field.'_remove'] = ['nullable', 'boolean'];
+        }
+
         $request->validate($rules, [], ['email' => 'adresse email']);
 
         // Mise à jour non destructive : seuls les champs réellement transmis
@@ -63,20 +70,35 @@ class SettingsController extends AdminController
             $settings['extra_phones'] = $this->collectExtraPhones($request);
         }
 
-        if ($settings === []) {
+        // Les champs image sont déduits de la definition ci-dessus, pour qu'un
+        // nouveau champ image soit pris en compte sans avoir à modifier deux
+        // endroits. Televersements et retraits sont listes avant l'ecriture des
+        // textes : envoyer un logo sans toucher aux autres champs est un
+        // enregistrement valide, pas un envoi vide.
+        $champsImage = $this->imageFields();
+
+        $televersements = array_values(array_filter(
+            $champsImage,
+            fn ($field) => $request->hasFile($field)
+        ));
+
+        // Un nouveau fichier prime sur le retrait : choisir une image et
+        // cocher "retirer" dans le meme envoi doit remplacer, pas effacer.
+        $retraits = array_values(array_filter(
+            $champsImage,
+            fn ($field) => ! $request->hasFile($field) && $request->boolean($field.'_remove')
+        ));
+
+        if ($settings === [] && $televersements === [] && $retraits === []) {
             return $this->back('Aucun changement à enregistrer.');
         }
 
-        if ($this->api->put('admin/settings', ['settings' => $settings]) === null) {
+        if ($settings !== [] && $this->api->put('admin/settings', ['settings' => $settings]) === null) {
             return $this->fail('Impossible d\'enregistrer les informations du site.');
         }
 
-        // Photos du formateur (accueil et page À propos)
-        foreach (['hero_photo', 'about_photo'] as $field) {
-            if (! $request->hasFile($field)) {
-                continue;
-            }
-
+        // Logo et photos du formateur (accueil et page À propos).
+        foreach ($televersements as $field) {
             $upload = $this->api->upload('admin/upload', $request->file($field), 'image');
 
             if ($upload === null) {
@@ -84,6 +106,15 @@ class SettingsController extends AdminController
             }
 
             $this->api->put('admin/settings', ['settings' => [$field => $upload['path'] ?? null]]);
+        }
+
+        foreach ($retraits as $field) {
+            // Le retrait n'efface que la valeur du réglage : le fichier reste
+            // sur le disque, comme pour les autres contenus. Une image
+            // supprimée par erreur redevient ainsi rejouable sans téléversement.
+            if ($this->api->put('admin/settings', ['settings' => [$field => '']]) === null) {
+                return $this->fail('Le contenu a été enregistré, mais le retrait de l\'image a échoué.');
+            }
         }
 
         return $this->back('Les informations du site ont été enregistrées.');
@@ -147,6 +178,7 @@ class SettingsController extends AdminController
             // Identite
             'name' => ['label' => 'Nom complet', 'type' => 'text', 'required' => true, 'group' => 'Identité'],
             'role' => ['label' => 'Fonction', 'type' => 'text', 'required' => true, 'group' => 'Identité'],
+            'logo' => ['label' => 'Logo', 'type' => 'image', 'group' => 'Identité', 'preview' => 'contain', 'hint' => 'Affiché partout : site public et administration. Sans logo, les initiales « GA » restent visibles.'],
             'tagline' => ['label' => 'Accroche', 'type' => 'text', 'required' => true, 'group' => 'Identité'],
             'hero_text' => ['label' => 'Présentation courte (accueil)', 'type' => 'textarea', 'group' => 'Identité'],
             'hero_photo' => ['label' => 'Photo principale (accueil)', 'type' => 'image', 'group' => 'Identité'],
@@ -178,5 +210,22 @@ class SettingsController extends AdminController
             'seo_description' => ['label' => 'Meta description SEO', 'type' => 'textarea', 'group' => 'SEO'],
             'seo_keywords' => ['label' => 'Mots-clés SEO', 'type' => 'textarea', 'group' => 'SEO'],
         ];
+    }
+
+    /**
+     * Champs acceptant une image (logo, photos du formateur).
+     *
+     * Cette liste est derivée de fields() et non redigée en dur : c'est
+     * elle qui pilote le téléversement et le retrait. Un champ image ajoute
+     * dans fields() est donc pris en compte automatiquement.
+     *
+     * @return array<int, string>
+     */
+    protected function imageFields(): array
+    {
+        return array_keys(array_filter(
+            self::fields(),
+            fn ($field) => ($field['type'] ?? null) === 'image'
+        ));
     }
 }
