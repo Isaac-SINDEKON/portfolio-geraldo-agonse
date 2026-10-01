@@ -24,9 +24,9 @@
             'fond' => 'bg-primary-600 text-white',
         ],
         'connexion' => [
-            'cadre' => 'mx-auto h-14 w-14 rounded-2xl',
-            'initiales' => 'text-lg',
-            'fond' => 'bg-white/15 text-white',
+            'cadre' => 'mx-auto h-12 w-12 rounded-xl',
+            'initiales' => 'text-base',
+            'fond' => 'bg-primary-600 text-white',
         ],
         'portrait-sombre' => [
             'cadre' => 'h-24 w-24 rounded-full',
