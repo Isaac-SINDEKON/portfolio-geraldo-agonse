@@ -7,12 +7,12 @@
 
 @section('content')
 
-    <section class="bg-primary-700 py-12 sm:py-16">
+    <section class="bg-slate-900 py-14 sm:py-16">
         <div class="container-x">
             <nav class="text-sm text-primary-200" aria-label="Fil d'Ariane">
-                <a href="{{ route('home') }}" class="hover:text-white">Accueil</a>
+                <a href="{{ route('home') }}" class="hover:text-primary-300">Accueil</a>
                 <span class="mx-2">/</span>
-                <a href="{{ route('formations') }}" class="hover:text-white">Formations</a>
+                <a href="{{ route('formations') }}" class="hover:text-primary-300">Formations</a>
                 <span class="mx-2">/</span>
                 <span class="text-white">{{ $formation['title'] }}</span>
             </nav>
@@ -58,7 +58,7 @@
                         <h2 class="text-2xl font-bold">Programme détaillé</h2>
                         <ol class="mt-5 space-y-4">
                             @foreach ($formation['programme'] as $index => $module)
-                                <li class="flex gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                                <li class="card flex gap-4 bg-slate-50 p-5">
                                     <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-600 text-sm font-bold text-white">
                                         {{ $index + 1 }}
                                     </span>
@@ -71,7 +71,7 @@
             </div>
 
             <aside class="lg:sticky lg:top-28 lg:self-start">
-                <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-soft">
+                <div class="rounded-2xl border border-slate-100 bg-white p-6">
                     <h2 class="text-lg font-bold">Informations clés</h2>
                     <dl class="mt-5 space-y-4 text-sm">
                         @if (! empty($formation['duree']))

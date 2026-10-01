@@ -6,7 +6,7 @@
 
 @section('content')
 
-    <section class="bg-primary-700 py-14 sm:py-20">
+    <section class="bg-slate-900 py-16 sm:py-20">
         <div class="container-x">
             <p class="label-eyebrow text-primary-200">Contact</p>
             <h1 class="mt-3 max-w-3xl text-3xl font-extrabold text-white sm:text-4xl">
@@ -215,12 +215,12 @@
                  haut servent uniquement à faire défiler vers le formulaire voulu. --}}
             <div class="space-y-8 lg:col-span-2">
                 <div id="formulaire-demande"
-                     class="scroll-mt-28 rounded-2xl border border-slate-200 bg-white p-6 shadow-soft sm:p-8">
+                     class="card scroll-mt-28 sm:p-8">
                     <livewire:demande-formation />
                 </div>
 
                 <div id="formulaire-devis"
-                     class="scroll-mt-28 rounded-2xl border border-slate-200 bg-white p-6 shadow-soft sm:p-8">
+                     class="card scroll-mt-28 sm:p-8">
                     <livewire:demande-devis />
                 </div>
             </div>

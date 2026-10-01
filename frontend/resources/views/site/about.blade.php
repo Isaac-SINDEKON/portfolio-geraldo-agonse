@@ -89,7 +89,7 @@
 
             <ul class="mt-10 grid gap-4 sm:grid-cols-2">
                 @foreach ($qualifications as $qualification)
-                    <li class="flex items-start gap-3 rounded-xl bg-white p-4 shadow-soft">
+                    <li class="card flex items-start gap-3 p-4">
                         <x-icon name="check" class="mt-0.5 h-5 w-5 shrink-0 text-accent-600" />
                         <span class="text-sm font-medium text-slate-700">{{ $qualification }}</span>
                     </li>
@@ -107,8 +107,8 @@
 
             <div class="mt-12 grid gap-6 md:grid-cols-2">
                 @foreach ($site['reasons'] as $reason)
-                    <div class="flex gap-5 rounded-2xl border border-slate-200 p-6">
-                        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary-600 text-white">
+                    <div class="card flex gap-5">
+                        <span class="card-icon-solid">
                             <x-icon :name="$reason['icon'] ?? 'sparkles'" />
                         </span>
                         <div>

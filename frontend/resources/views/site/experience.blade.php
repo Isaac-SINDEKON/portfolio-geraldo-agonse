@@ -5,10 +5,10 @@
 
 @section('content')
 {{-- EN-TÊTE (CC §9) --}}
-<section class="bg-gradient-to-br from-primary-800 to-primary-600 py-14 sm:py-20">
+<section class="bg-slate-900 py-16 sm:py-20">
     <div class="container-x">
         <nav aria-label="Fil d'Ariane" class="text-xs text-primary-200">
-            <a href="{{ route('home') }}" class="transition hover:text-white">Accueil</a>
+            <a href="{{ route('home') }}" class="transition hover:text-primary-300">Accueil</a>
             <span class="mx-2">/</span>
             <span class="text-white">Expérience &amp; expertise</span>
         </nav>
@@ -36,7 +36,7 @@
                         <x-icon :name="$experience['icon'] ?? 'briefcase'" class="h-5 w-5" />
                     </span>
 
-                    <div class="flex-1 rounded-2xl border border-slate-200 p-6">
+                    <div class="card flex-1">
                         <h2 class="text-lg font-bold">{{ $experience['title'] }}</h2>
                         <p class="mt-2 text-sm leading-relaxed text-slate-600">{{ $experience['description'] }}</p>
                     </div>

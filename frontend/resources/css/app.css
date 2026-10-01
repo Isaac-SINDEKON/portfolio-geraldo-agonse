@@ -9,31 +9,46 @@
 |--------------------------------------------------------------------------
 | Identité visuelle (CC §19)
 |--------------------------------------------------------------------------
-| Couleur principale  : indigo  -> professionnalisme, confiance
-| Couleur secondaire  : slate  -> lisibilité, sobriété
-| Couleur d'accent    : emerald-> action, WhatsApp, validation
-| Fond                 : blanc / slate-50
-| Texte                : slate-700 / slate-900
+| Direction artistique Biztar : blanc pur, sections slate-50, texte slate-900
+| pour un contraste B2B net. Bleu électrique en accentuation, safran réservé
+| aux petits badges. Le vert reste réservé à WhatsApp : c'est une convention
+| de reconnaissance, pas une couleur de marque.
+|
+| Le bleu est défini explicitement (et non via la palette Tailwind par défaut)
+| pour garantir #2563EB en principal et #1D4ED8 au survol, comme sur la
+| maquette. Toutes les classes primary-* du site en découlent.
 */
 
 @theme {
     --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 
-    /* Ombre douce utilisée par .btn, .card (CC §18) */
+    /* Ombre douce : basse et diffuse, pour un rendu plat et premium. */
     --shadow-soft: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 8px 24px -12px rgb(15 23 42 / 0.12);
 
-    --color-primary-50: #eef2ff;
-    --color-primary-100: #e0e7ff;
-    --color-primary-200: #c7d2fe;
-    --color-primary-300: #a5b4fc;
-    --color-primary-400: #818cf8;
-    --color-primary-500: #6366f1;
-    --color-primary-600: #4f46e5;
-    --color-primary-700: #4338ca;
-    --color-primary-800: #3730a3;
-    --color-primary-900: #312e81;
+    /* Bleu Biztar : 600 = #2563EB, 700 = #1D4ED8 (survol). */
+    --color-primary-50: #eff6ff;
+    --color-primary-100: #dbeafe;
+    --color-primary-200: #bfdbfe;
+    --color-primary-300: #93c5fd;
+    --color-primary-400: #60a5fa;
+    --color-primary-500: #3b82f6;
+    --color-primary-600: #2563eb;
+    --color-primary-700: #1d4ed8;
+    --color-primary-800: #1e40af;
+    --color-primary-900: #1e3a8a;
 
+    /* Safran : touches subtiles, petits badges uniquement. */
+    --color-saffron-50: #fefce8;
+    --color-saffron-100: #fef9c3;
+    --color-saffron-200: #fef08a;
+    --color-saffron-300: #fde047;
+    --color-saffron-400: #facc15;
+    --color-saffron-500: #eab308;
+    --color-saffron-600: #ca8a04;
+    --color-saffron-700: #a16207;
+
+    /* Accent : réservé à WhatsApp et aux validations. */
     --color-accent-500: #10b981;
     --color-accent-600: #059669;
 
@@ -51,7 +66,7 @@
     }
 
     body {
-        @apply bg-white text-slate-700 antialiased;
+        @apply bg-white text-slate-600 antialiased;
     }
 
     h1, h2, h3, h4 {
@@ -76,30 +91,33 @@
     .btn-danger,
     .btn-outline,
     .btn-light,
-    .btn-ghost {
-        @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition
+    .btn-ghost,
+    .btn-submit {
+        @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-semibold
+            transition-all duration-200
             focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
             disabled:pointer-events-none disabled:opacity-60;
     }
 
     .btn-primary {
-        @apply bg-primary-600 text-white shadow-soft hover:bg-primary-700;
+        @apply bg-primary-600 text-white shadow-sm hover:bg-primary-700;
     }
 
     .btn-whatsapp {
-        @apply bg-whatsapp text-white shadow-soft hover:bg-[#1eb855];
+        @apply bg-whatsapp text-white shadow-sm hover:bg-[#1eb855];
     }
 
     .btn-accent {
-        @apply bg-accent-600 text-white shadow-soft hover:bg-accent-500;
+        @apply bg-accent-600 text-white shadow-sm hover:bg-accent-500;
     }
 
     .btn-danger {
         @apply border border-red-200 bg-white text-red-700 hover:bg-red-50;
     }
 
+    /* Secondaire : bordure fine, aucune ombre au repos. */
     .btn-outline {
-        @apply border border-slate-300 bg-white text-slate-800 hover:border-primary-500 hover:text-primary-700;
+        @apply border border-slate-200 bg-white text-slate-900 hover:border-primary-600 hover:text-primary-700;
     }
 
     .btn-light {
@@ -110,10 +128,27 @@
         @apply text-slate-600 hover:bg-slate-100 hover:text-slate-900;
     }
 
+    /* Carte Biztar : blanche, bordure slate-100 quasi invisible, coins xl.
+       Le relief n'apparaît qu'au survol (voir .card-lift). */
     .card {
-        @apply rounded-2xl border border-slate-200 bg-white p-6 shadow-soft;
+        @apply rounded-xl border border-slate-100 bg-white p-6;
     }
 
+    .card-lift {
+        @apply transition-all duration-300 hover:-translate-y-1 hover:border-slate-200 hover:shadow-xl;
+    }
+
+    /* Icone de carte : carré arrondi à fond teinté, l'icône reste colorée. */
+    .card-icon {
+        @apply flex h-12 w-12 items-center justify-center rounded-lg bg-primary-50 text-primary-600
+            transition-colors duration-300;
+    }
+
+    .card-icon-solid {
+        @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary-600 text-white;
+    }
+
+    /* Sur-titre de section : bleu, capitales fines. */
     .eyebrow {
         @apply text-xs font-bold tracking-[0.18em] text-primary-600 uppercase;
     }
@@ -122,23 +157,55 @@
         @apply text-xs font-bold tracking-[0.18em] uppercase;
     }
 
+    /* Badge safran : réservé aux micro-labels (durée, niveau, statut). */
+    .badge-saffron {
+        @apply inline-flex items-center rounded-full bg-saffron-50 px-3 py-1 text-xs font-semibold text-saffron-700
+            ring-1 ring-saffron-200 ring-inset;
+    }
+
+    /* Bandeau de statistiques : bloc sombre à coins arrondis. */
+    .stat-nombre {
+        @apply text-4xl font-bold text-blue-400;
+    }
+
+    .stat-label {
+        @apply text-xs font-semibold tracking-wider text-slate-400 uppercase;
+    }
+
     .field-label {
         @apply mb-1.5 block text-sm font-semibold text-slate-700;
     }
 
+    /* Champs Biztar : fond gris neutre très clair, sans bordure visible.
+       Le focus fait apparaître le fond blanc et l'anneau bleu. */
     .field {
-        @apply w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800
+        @apply w-full rounded-lg border-0 bg-slate-50 p-3 text-sm text-slate-900
             placeholder:text-slate-400
-            focus:border-primary-500 focus:ring-2 focus:ring-primary-100 focus:outline-none;
+            focus:bg-white focus:ring-2 focus:ring-primary-500 focus:ring-inset focus:outline-none;
     }
 
     /* État invalide d'un champ de formulaire */
     .field-error {
-        @apply border-red-400 focus:border-red-500 focus:ring-red-100;
+        @apply bg-red-50 focus:bg-white focus:ring-red-500;
     }
 
     .field-message {
         @apply mt-1 text-xs font-medium text-red-600;
+    }
+
+    /* Bouton de soumission : pleine largeur, trait net. */
+    .btn-submit {
+        @apply w-full bg-primary-600 py-3.5 text-white shadow-sm hover:bg-primary-700;
+    }
+
+    /* Lien de navigation fin, survol discret. */
+    .nav-link {
+        @apply rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition-colors duration-200
+            hover:bg-slate-50 hover:text-slate-900;
+    }
+
+    .nav-link-active {
+        @apply bg-primary-50 text-primary-700;
     }
 
     .prose-soft p {

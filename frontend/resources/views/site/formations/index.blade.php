@@ -8,7 +8,7 @@
 
     @php $domaine = request('domaine'); @endphp
 
-    <section class="bg-primary-700 py-14 sm:py-20">
+    <section class="bg-slate-900 py-16 sm:py-20">
         <div class="container-x">
             <p class="label-eyebrow text-primary-200">Formations</p>
             <h1 class="mt-3 max-w-3xl text-3xl font-extrabold text-white sm:text-4xl">
@@ -43,7 +43,7 @@
             @if (count($liste))
                 <div class="grid gap-6 md:grid-cols-2">
                     @foreach ($liste as $formation)
-                        <article class="flex flex-col rounded-2xl border border-slate-200 bg-white p-7 shadow-soft transition hover:border-primary-300">
+                        <article class="card card-lift flex flex-col">
                             <div class="flex items-start justify-between gap-4">
                                 <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-50 text-primary-600">
                                     <x-icon :name="$formation['icon'] ?? 'target'" />

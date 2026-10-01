@@ -22,14 +22,14 @@
             <div>
                 <h2 class="text-sm font-bold uppercase tracking-wider text-white">Navigation</h2>
                 <ul class="mt-4 space-y-2 text-sm">
-                    <li><a href="{{ route('home') }}" class="transition hover:text-white">Accueil</a></li>
-                    <li><a href="{{ route('about') }}" class="transition hover:text-white">À propos</a></li>
-                    <li><a href="{{ route('formations') }}" class="transition hover:text-white">Formations</a></li>
-                    <li><a href="{{ route('services') }}" class="transition hover:text-white">Services entreprises</a></li>
-                    <li><a href="{{ route('experience') }}" class="transition hover:text-white">Expérience & expertise</a></li>
-                    <li><a href="{{ route('testimonials') }}" class="transition hover:text-white">Témoignages</a></li>
-                    <li><a href="{{ route('gallery') }}" class="transition hover:text-white">Galerie</a></li>
-                    <li><a href="{{ route('contact') }}" class="transition hover:text-white">Contact</a></li>
+                    <li><a href="{{ route('home') }}" class="transition hover:text-primary-300">Accueil</a></li>
+                    <li><a href="{{ route('about') }}" class="transition hover:text-primary-300">À propos</a></li>
+                    <li><a href="{{ route('formations') }}" class="transition hover:text-primary-300">Formations</a></li>
+                    <li><a href="{{ route('services') }}" class="transition hover:text-primary-300">Services entreprises</a></li>
+                    <li><a href="{{ route('experience') }}" class="transition hover:text-primary-300">Expérience & expertise</a></li>
+                    <li><a href="{{ route('testimonials') }}" class="transition hover:text-primary-300">Témoignages</a></li>
+                    <li><a href="{{ route('gallery') }}" class="transition hover:text-primary-300">Galerie</a></li>
+                    <li><a href="{{ route('contact') }}" class="transition hover:text-primary-300">Contact</a></li>
                 </ul>
             </div>
 
@@ -38,19 +38,19 @@
                 <ul class="mt-4 space-y-3 text-sm">
                     <li>
                         <a href="{{ $content->whatsappUrl() }}" target="_blank" rel="noopener"
-                           class="flex items-center gap-2 transition hover:text-white">
+                           class="flex items-center gap-2 transition hover:text-primary-300">
                             <x-icon name="whatsapp" class="h-4 w-4" />
                             {{ $site['settings']['whatsapp_display'] ?? $site['settings']['whatsapp'] ?? '' }}
                         </a>
                     </li>
                     <li>
-                        <a href="{{ $content->telUrl() }}" class="flex items-center gap-2 transition hover:text-white">
+                        <a href="{{ $content->telUrl() }}" class="flex items-center gap-2 transition hover:text-primary-300">
                             <x-icon name="phone" class="h-4 w-4" />
                             {{ $site['settings']['phone_display'] ?? $site['settings']['phone'] ?? '' }}
                         </a>
                     </li>
                     <li>
-                        <a href="{{ $content->emailUrl() }}" class="flex items-center gap-2 break-all transition hover:text-white">
+                        <a href="{{ $content->emailUrl() }}" class="flex items-center gap-2 break-all transition hover:text-primary-300">
                             <x-icon name="mail" class="h-4 w-4" />
                             {{ $site['settings']['email'] ?? '' }}
                         </a>

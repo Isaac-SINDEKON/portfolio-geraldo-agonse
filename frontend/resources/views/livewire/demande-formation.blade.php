@@ -126,7 +126,7 @@
             </div>
 
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <button type="submit" class="btn-primary" wire:loading.attr="disabled">
+                <button type="submit" class="btn-submit" wire:loading.attr="disabled">
                     <span wire:loading.remove wire:target="submit">Envoyer ma demande</span>
                     <span wire:loading wire:target="submit">Envoi en cours…</span>
                 </button>

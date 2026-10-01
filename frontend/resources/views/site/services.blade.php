@@ -9,10 +9,10 @@
 @endphp
 
 {{-- EN-TÊTE (CC §16) --}}
-<section class="bg-gradient-to-br from-primary-800 to-primary-600 py-14 sm:py-20">
+<section class="bg-slate-900 py-16 sm:py-20">
     <div class="container-x">
         <nav aria-label="Fil d'Ariane" class="text-xs text-primary-200">
-            <a href="{{ route('home') }}" class="transition hover:text-white">Accueil</a>
+            <a href="{{ route('home') }}" class="transition hover:text-primary-300">Accueil</a>
             <span class="mx-2">/</span>
             <span class="text-white">Services aux entreprises</span>
         </nav>
@@ -32,7 +32,7 @@
         <div class="grid gap-6 md:grid-cols-2">
             @forelse ($site['services'] ?? [] as $service)
                 <div class="card flex gap-5 transition hover:border-primary-300 hover:shadow-lg">
-                    <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary-600 text-white">
+                    <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-primary-600 text-white">
                         <x-icon :name="$service['icon'] ?? 'building'" class="h-6 w-6" />
                     </span>
                     <div>
@@ -63,7 +63,7 @@
 
         <ol class="mt-12 grid gap-6 md:grid-cols-4">
             @foreach ($process as $step)
-                <li class="rounded-2xl bg-white p-6 shadow-soft">
+                <li class="card">
                     <h3 class="text-base font-bold">{{ $step['title'] }}</h3>
                     <p class="mt-2 text-sm leading-relaxed text-slate-600">{{ $step['text'] }}</p>
                 </li>
