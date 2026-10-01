@@ -8,17 +8,18 @@
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="flex min-h-screen items-center justify-center bg-primary-700 px-4 py-12">
-    <div class="w-full max-w-md">
-        <div class="text-center">
-            <x-marque variante="connexion" />
-            <h1 class="mt-5 text-2xl font-extrabold text-white">Espace administration</h1>
-            <p class="mt-2 text-sm text-primary-100">
-                {{ config('app.name') }}
-            </p>
-        </div>
+    <body class="flex min-h-screen items-center justify-center bg-slate-900 px-4 py-12">
+        <div class="w-full max-w-md">
+            <div class="text-center">
+                <x-marque variante="connexion" />
+                <h1 class="mt-5 text-2xl font-extrabold text-white">Espace administration</h1>
+                <p class="mt-2 text-sm text-slate-300">
+                    {{ config('app.name') }}
+                </p>
+            </div>
 
-        <div class="mt-8 rounded-2xl bg-white p-7 shadow-soft">
+            <div class="mt-8 rounded-2xl border border-slate-100 bg-white p-7">
+
             @if (session('success'))
                 <div class="mb-5 flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 p-4 text-sm font-medium text-green-800" role="status">
                     <x-icon name="check" class="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
@@ -52,7 +53,7 @@
                         autocomplete="current-password" />
                 </div>
 
-                <button type="submit" class="btn-primary w-full">Se connecter</button>
+                <button type="submit" class="btn-submit">Se connecter</button>
             </form>
 
             <p class="mt-6 border-t border-slate-100 pt-4 text-center text-xs text-slate-500">
@@ -61,7 +62,7 @@
         </div>
 
         <p class="mt-6 text-center">
-            <a href="{{ route('home') }}" class="text-sm text-primary-100 underline-offset-4 hover:underline">
+            <a href="{{ route('home') }}" class="text-sm text-slate-300 underline-offset-4 transition-colors hover:text-white">
                 Retour au site
             </a>
         </p>
