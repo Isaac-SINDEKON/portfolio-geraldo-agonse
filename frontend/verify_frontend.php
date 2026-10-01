@@ -276,7 +276,7 @@ $leadPayload = [
     'telephone' => '+229 90 00 00 00',
     'indicatif_pays' => '229',
     'email' => 'test@example.com',
-    'theme' => 'Formation test',
+    'theme' => 'Formation à distance',
     'message' => "Audit automatique du frontend.\nDeuxieme ligne : le message doit\ns'afficher sur plusieurs lignes.",
 ];
 
@@ -786,8 +786,14 @@ $photoConnue = $siteJson['settings']['hero_photo'] ?? '';
 check('Champ de téléversement du logo dans les réglages',
     (bool) preg_match('/<input[^>]*type="file"[^>]*name="logo"/', $page->body()));
 
-check('Repli sur les initiales quand aucun logo n\'est défini',
-    substr_count(Http::get($frontend.'/')->body(), '>GA<') === 3);
+// Le repli ne s'observe que si aucun logo n'est defini au depart. Sinon c'est
+// le controle « Initiales revenues apres retrait », plus bas, qui verifie ce
+// comportement : il vide le logo puis compte les initiales, quel que soit l'etat
+// de depart.
+if ($logoOriginal === '') {
+    check('Repli sur les initiales quand aucun logo n\'est défini',
+        substr_count(Http::get($frontend.'/')->body(), '>GA<') === 3);
+}
 
 if ($photoConnue !== '') {
     // Un réglage logo valide est simulé avec le chemin d'une image déjà
@@ -829,6 +835,61 @@ check('Logo d\'origine restauré', $logoRestaure === $logoOriginal, 'valeur actu
 // ------------------------------------------------------------------ Demandes
 $leads = Http::withOptions(['cookies' => $jar])->get($frontend.'/admin/demandes');
 check('Demande de test visible dans l\'admin', str_contains($leads->body(), 'Organisation de verification'));
+
+// Recherche dans les demandes recues (barre de recherche du CC 14 et 15).
+// La demande de test creee plus haut sert de reference : son theme contient
+// volontairement un accent et son telephone est saisi avec des espaces.
+$recherche = Http::withOptions(['cookies' => $jar])
+    ->get($frontend.'/admin/demandes?type=&q=verification');
+check('Recherche : l\'organisation est retrouvee par son nom',
+    str_contains($recherche->body(), 'Organisation de verification'));
+
+check('Recherche : insensible a la casse',
+    str_contains(Http::withOptions(['cookies' => $jar])->get($frontend.'/admin/demandes?type=&q=VERIFICATION')->body(),
+        'Organisation de verification'));
+
+// Le theme de test est « Formation à distance » : « a distance » sans accent
+// doit le retrouver, ce qui verifie le traitement des diacritiques.
+check('Recherche : insensible aux accents',
+    str_contains(Http::withOptions(['cookies' => $jar])->get($frontend.'/admin/demandes?type=&q=a+distance')->body(),
+        'Organisation de verification'));
+
+$parTheme = Http::withOptions(['cookies' => $jar])->get($frontend.'/admin/demandes?type=&q=distance');
+check('Recherche : le theme de la demande est retrouve',
+    str_contains($parTheme->body(), 'Organisation de verification'));
+
+check('Recherche : plusieurs mots combines en ET',
+    str_contains(Http::withOptions(['cookies' => $jar])->get($frontend.'/admin/demandes?type=&q=verification+distance')->body(),
+        'Organisation de verification')
+    && ! str_contains(Http::withOptions(['cookies' => $jar])->get($frontend.'/admin/demandes?type=&q=verification+inexistant')->body(),
+        'Organisation de verification'));
+
+check('Recherche : le telephone saisi sans espaces est retrouve',
+    str_contains(Http::withOptions(['cookies' => $jar])->get($frontend.'/admin/demandes?type=&q=2299000000')->body(),
+        'Organisation de verification'));
+
+$combien = substr_count($recherche->body(), '<article class="card">');
+check('Recherche : les autres demandes sont ecartees', $combien >= 1 && $combien <= 3,
+    'recherche "verification" : '.$combien.' demande(s)');
+
+$rien = Http::withOptions(['cookies' => $jar])->get($frontend.'/admin/demandes?type=&q=zzz-aucune-demande');
+check('Recherche : etat vide adapte quand rien ne correspond',
+    str_contains($rien->body(), 'Aucune demande ne correspond') && ! str_contains($rien->body(), 'Organisation de verification'));
+
+check('Recherche : la saisie est conservee au changement d\'onglet',
+    str_contains(Http::withOptions(['cookies' => $jar])->get($frontend.'/admin/demandes?type=formation&q=verification')->body(),
+        'name="q" value="verification"'));
+
+check('Recherche : une saisie trop longue est tronquee',
+    str_contains(Http::withOptions(['cookies' => $jar])->get($frontend.'/admin/demandes?type=&q='.str_repeat('a', 300))->body(),
+        'name="q" value="'.str_repeat('a', 100).'"'));
+
+check('Recherche : la saisie est echappee, jamais injectee en HTML',
+    ! str_contains(Http::withOptions(['cookies' => $jar])->get($frontend.'/admin/demandes?type=&q='.urlencode('<script>alert(1)</script>'))->body(),
+        '<script>alert(1)</script>'));
+
+check('Recherche : la barre de recherche est presente sur la page',
+    str_contains($leads->body(), 'id="lead-search"'));
 
 // Nettoyage cible : seules les demandes de test sont supprimees, jamais les autres.
 $blocs = preg_split('/<article class="card">/', $leads->body()) ?: [];

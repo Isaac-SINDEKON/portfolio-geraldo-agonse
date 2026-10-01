@@ -6,6 +6,36 @@
 
     <p class="text-sm text-slate-500">Formulaires « Demander une formation » et « Demander un devis » (CC §14 et §15).</p>
 
+    <form method="GET" action="{{ route('admin.leads.index') }}" role="search"
+          class="mt-4 flex flex-wrap items-end gap-2">
+        @if ($type !== '')
+            <input type="hidden" name="type" value="{{ $type }}">
+        @endif
+
+        <div class="min-w-0 flex-1">
+            <label for="lead-search" class="field-label text-xs">Rechercher une demande</label>
+            <div class="relative">
+                <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
+                    <x-icon name="search" class="h-4 w-4" />
+                </span>
+                <input id="lead-search" type="search" name="q" value="{{ $q }}" maxlength="100"
+                       autocomplete="off" class="field pl-9"
+                       placeholder="Organisation, responsable, e-mail, téléphone, thème…"
+                       onchange="this.form.submit()">
+            </div>
+        </div>
+
+        <button type="submit" class="btn-primary px-4 py-3 text-sm">
+            <x-icon name="search" class="h-4 w-4" />
+            Rechercher
+        </button>
+
+        @if ($q !== '')
+            <a href="{{ route('admin.leads.index', $type ? ['type' => $type] : []) }}"
+               class="btn-outline px-4 py-3 text-sm">Effacer</a>
+        @endif
+    </form>
+
     <div class="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
         @php
             $filters = [
@@ -16,7 +46,16 @@
         @endphp
 
         @foreach ($filters as $key => $label)
-            <a href="{{ route('admin.leads.index', $key ? ['type' => $key] : []) }}"
+            @php
+                // Changer d'onglet ne doit pas perdre la saisie courante.
+                $params = $key ? ['type' => $key] : [];
+
+                if ($q !== '') {
+                    $params['q'] = $q;
+                }
+            @endphp
+
+            <a href="{{ route('admin.leads.index', $params) }}"
                @class([
                    'rounded-lg px-3 py-1.5 transition',
                    'bg-primary-600 text-white' => $type === $key,
@@ -26,6 +65,13 @@
             </a>
         @endforeach
     </div>
+
+    @if ($q !== '')
+        <p class="mt-4 text-sm text-slate-500" role="status">
+            {{ count($leads) }} {{ count($leads) > 1 ? 'demandes trouvées' : 'demande trouvée' }}
+            pour « <span class="font-semibold text-slate-700">{{ $q }}</span> ».
+        </p>
+    @endif
 
     <div class="mt-6 space-y-4">
         @forelse ($leads as $lead)
@@ -110,7 +156,15 @@
                 </div>
             </article>
         @empty
-            <p class="card text-center text-sm text-slate-500">Aucune demande pour le moment.</p>
+            <p class="card text-center text-sm text-slate-500">
+                @if ($q !== '')
+                    Aucune demande ne correspond à « {{ $q }} ».
+                    <a href="{{ route('admin.leads.index', $type ? ['type' => $type] : []) }}"
+                       class="font-semibold text-primary-600 underline">Effacer la recherche</a>
+                @else
+                    Aucune demande pour le moment.
+                @endif
+            </p>
         @endforelse
     </div>
 
