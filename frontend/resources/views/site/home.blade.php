@@ -96,27 +96,30 @@
     </div>
 </section>
 
-{{-- BANDEAU DE STATISTIQUES --}}
+{{-- BANDEAU DE STATISTIQUES
+
+     Les valeurs par defaut sont appliquees avec ?: et non ?? : le premier
+     replie aussi sur une chaine vide. Un champ laisse vide par le
+     proprietaire conserve donc la valeur du site au lieu de faire
+     disparaitre le libelle ou le chiffre. --}}
+@php
+    $statsBandeau = [
+        [$s['stat_1_label'] ?? '', 'Années d\'expérience', $s['stat_1_value'] ?? '', '10+'],
+        [$s['stat_2_label'] ?? '', 'Formations animées', $s['stat_2_value'] ?? '', '120+'],
+        [$s['stat_3_label'] ?? '', 'Professionnels formés', $s['stat_3_value'] ?? '', '2 000+'],
+        [$s['stat_4_label'] ?? '', 'Organisations accompagnées', $s['stat_4_value'] ?? '', '50+'],
+    ];
+@endphp
 <section class="bg-white pb-16 sm:pb-20">
     <div class="container-x">
         <div class="rounded-2xl bg-slate-900 px-6 py-10 text-white sm:px-10">
             <dl class="grid grid-cols-2 gap-8 text-center lg:grid-cols-4">
-                <div>
-                    <dt class="stat-label">{{ $s['stat_1_label'] ?? 'Années d\'expérience' }}</dt>
-                    <dd class="stat-nombre mt-2">{{ $s['stat_1_value'] ?? '10+' }}</dd>
-                </div>
-                <div>
-                    <dt class="stat-label">{{ $s['stat_2_label'] ?? 'Formations animées' }}</dt>
-                    <dd class="stat-nombre mt-2">{{ $s['stat_2_value'] ?? '120+' }}</dd>
-                </div>
-                <div>
-                    <dt class="stat-label">{{ $s['stat_3_label'] ?? 'Professionnels formés' }}</dt>
-                    <dd class="stat-nombre mt-2">{{ $s['stat_3_value'] ?? '2 000+' }}</dd>
-                </div>
-                <div>
-                    <dt class="stat-label">{{ $s['stat_4_label'] ?? 'Organisations accompagnées' }}</dt>
-                    <dd class="stat-nombre mt-2">{{ $s['stat_4_value'] ?? '50+' }}</dd>
-                </div>
+                @foreach ($statsBandeau as [$libelle, $libelleDefaut, $valeur, $valeurDefaut])
+                    <div>
+                        <dt class="stat-label">{{ $libelle ?: $libelleDefaut }}</dt>
+                        <dd class="stat-nombre mt-2">{{ $valeur ?: $valeurDefaut }}</dd>
+                    </div>
+                @endforeach
             </dl>
         </div>
     </div>

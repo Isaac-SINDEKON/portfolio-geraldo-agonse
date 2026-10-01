@@ -748,10 +748,47 @@ foreach ($areas as $area) {
 // contaminee par un run interrompu, et la restauration ne fonctionnerait jamais.
 $original = Http::acceptJson()->get($backend.'/api/v1/site')->json()['settings']['location'] ?? 'Bénin · Togo';
 
+// Bandeau de statistiques de l'accueil : les huit champs doivent exister dans
+// le formulaire et le bandeau public doit rester complet.
+//
+// Aucun chiffre de test n'est ecrit, contrairement aux autres reglages. Le
+// formulaire renvoie toujours ces huit champs : y ecrire laisserait des
+// reglages en base que le formulaire ne peut plus supprimer, seul le
+// proprietaire le pourrait. Les champs sont donc retires du jeu envoye, ce
+// qui laisse ses valeurs intactes et ne laisse aucune trace du test.
+$clesStats = [
+    'stat_1_label' => 'Années d\'expérience', 'stat_1_value' => '10+',
+    'stat_2_label' => 'Formations animées', 'stat_2_value' => '120+',
+    'stat_3_label' => 'Professionnels formés', 'stat_3_value' => '2 000+',
+    'stat_4_label' => 'Organisations accompagnées', 'stat_4_value' => '50+',
+];
+
+foreach ($clesStats as $cle => $defaut) {
+    check('Bandeau de statistiques : champ « '.$cle.' » présent dans le formulaire',
+        array_key_exists($cle, $champs));
+}
+
+// Ces huit champs sont retires du jeu envoye : le formulaire les renvoie
+// toujours, et les ecrire creerait des reglages vides en base que le
+// formulaire ne saurait plus effacer. Les laisser de cote laisse les
+// valeurs du proprietaire intactes et evite toute trace du test.
+$champs = array_diff_key($champs, $clesStats);
+
 $champs['_token'] = $csrfReglages;
 $champs['location'] = 'Bénin · Togo · Audit';
 
 $save = Http::withOptions(['cookies' => $jar])->asForm()->post($frontend.'/admin/contenu/reglages', $champs);
+
+// Le bandeau public doit rester complet. Ce controle porte sur le HTML
+// plutot que sur la base : il verifie ce que voit vraiment le visiteur, y
+// compris le repli d'une chaine vide sur la valeur du site.
+$accueilStats = Http::get($frontend.'/')->body();
+foreach ($clesStats as $cle => $attendu) {
+    check('Bandeau de statistiques : « '.$attendu.' » affiché sur l\'accueil',
+        str_contains($accueilStats, htmlspecialchars($attendu, ENT_QUOTES)));
+}
+
+
 
 check('Enregistrement des réglages', str_contains($save->body(), 'Les informations du site ont été enregistrées'));
 check(

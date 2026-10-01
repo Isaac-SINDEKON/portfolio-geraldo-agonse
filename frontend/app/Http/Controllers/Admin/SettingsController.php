@@ -185,6 +185,19 @@ class SettingsController extends AdminController
             'cta_title' => ['label' => 'Appel à l\'action : titre', 'type' => 'text', 'group' => 'Identité'],
             'cta_text' => ['label' => 'Appel à l\'action : texte', 'type' => 'textarea', 'group' => 'Identité'],
 
+            // Bandeau de statistiques affiche sous le titre de l'accueil.
+            // Les quatre couples libelle/valeur sont lus tels quels par la page
+            // d'accueil ; un couple laisse vide retombe sur la valeur affichee
+            // par defaut, ce qui evite un bandeau vide si un champ est oublie.
+            'stat_1_label' => ['label' => 'Statistique 1 : libellé', 'type' => 'text', 'group' => 'Bandeau de statistiques'],
+            'stat_1_value' => ['label' => 'Statistique 1 : chiffre', 'type' => 'text', 'group' => 'Bandeau de statistiques'],
+            'stat_2_label' => ['label' => 'Statistique 2 : libellé', 'type' => 'text', 'group' => 'Bandeau de statistiques'],
+            'stat_2_value' => ['label' => 'Statistique 2 : chiffre', 'type' => 'text', 'group' => 'Bandeau de statistiques'],
+            'stat_3_label' => ['label' => 'Statistique 3 : libellé', 'type' => 'text', 'group' => 'Bandeau de statistiques'],
+            'stat_3_value' => ['label' => 'Statistique 3 : chiffre', 'type' => 'text', 'group' => 'Bandeau de statistiques'],
+            'stat_4_label' => ['label' => 'Statistique 4 : libellé', 'type' => 'text', 'group' => 'Bandeau de statistiques'],
+            'stat_4_value' => ['label' => 'Statistique 4 : chiffre', 'type' => 'text', 'group' => 'Bandeau de statistiques'],
+
             // A propos
             'about_parcours' => ['label' => 'À propos : parcours', 'type' => 'textarea', 'group' => 'À propos'],
             'about_approche' => ['label' => 'À propos : approche professionnelle', 'type' => 'textarea', 'group' => 'À propos'],
