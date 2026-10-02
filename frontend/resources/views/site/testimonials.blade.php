@@ -26,8 +26,12 @@
             <figure class="card mb-6">
                 <div class="flex flex-col gap-6 sm:flex-row">
                     <div class="flex items-center gap-4 sm:w-56 sm:shrink-0 sm:flex-col sm:items-start">
-                        @if (! empty($t['photo_url']))
-                            <img src="{{ $t['photo_url'] }}" alt="{{ $t['author'] }}" loading="lazy"
+                        {{-- La photo transite par imageUrl() comme les autres images
+                             du site : servie par le frontend, elle ne depend pas du
+                             backend pour s'afficher. --}}
+                        @php $photoTemoignage = $content->imageUrl($t['photo'] ?? $t['photo_url'] ?? null); @endphp
+                        @if ($photoTemoignage)
+                            <img src="{{ $photoTemoignage }}" alt="{{ $t['author'] }}" loading="lazy"
                                  class="h-16 w-16 rounded-full object-cover">
                         @else
                             <span class="flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 text-xl font-bold text-primary-700">

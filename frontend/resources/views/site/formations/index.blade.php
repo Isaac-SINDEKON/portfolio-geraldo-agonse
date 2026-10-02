@@ -35,8 +35,11 @@
             @endif
 
             @php
+                // Un domaine et sa formation ne partagent pas toujours le meme
+                // libelle exact : la comparaison normalisee evite d'afficher une
+                // liste vide pour un domaine qui a pourtant sa formation.
                 $liste = $domaine
-                    ? array_values(array_filter($formations, fn ($f) => ($f['title'] ?? '') === $domaine))
+                    ? array_values(array_filter($formations, fn ($f) => \App\Services\SiteContent::memeDomaine($domaine, $f['title'] ?? '')))
                     : $formations;
             @endphp
 
@@ -86,9 +89,16 @@
                     @endforeach
                 </div>
             @else
-                <p class="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">
-                    Aucune formation ne correspond à cette recherche.
-                </p>
+                {{-- Filtre sans resultat : le visiteur ne doit pas rester bloque
+                     sur une page vide, on lui rend le catalogue complet. --}}
+                <div class="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
+                    <p class="text-slate-500">
+                        Aucune formation n'est rattachée à ce domaine pour le moment.
+                    </p>
+                    <a href="{{ route('formations') }}" class="btn-outline mt-6">
+                        Voir toutes les formations
+                    </a>
+                </div>
             @endif
         </div>
     </section>

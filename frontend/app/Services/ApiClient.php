@@ -209,16 +209,106 @@ class ApiClient
         return $messages[$message] ?? $message;
     }
 
+    /**
+     * Racine publique des fichiers stockes par le backend.
+     *
+     * C'est la seule source de verite sur l'emplacement reel des images : le
+     * frontend s'en sert pour les relayer et pour reconnaitre les URL que
+     * l'API renvoie deja completas (galerie, photos de temoignages).
+     */
+    public static function storageBaseUrl(): string
+    {
+        return rtrim((string) config('services.backend.storage_url'), '/');
+    }
+
+    /** Prefixe public sous lequel le frontend sert les images du backend. */
+    public const MEDIA_PREFIX = '/media/';
+
+    /**
+     * URL d'une image, servie par le frontend et donc de meme origine que la page.
+     *
+     * Les images sont stockees par le backend, sur un autre port eteventuellement
+     * un autre hote que les pages. Construire directement l'URL du backend
+     * obligeait le navigateur a joindre le backend tout seul : le site perdait
+     * alors ses images des que le navigateur ne pouvait plus y acceder (autre
+     * appareil, backend arrete, ou page en HTTPS servie avec une image en HTTP,
+     * bloquee par la regle de contenu mixte). Le frontend les sert donc
+     * lui-meme, via la route /media, et l'image suit toujours la page.
+     *
+     * L'API renvoie les images sous deux formes : un chemin relatif
+     * ("uploads/x.jpg") pour les reglages, et l'URL complete du backend pour la
+     * galerie et les photos de temoignages. Les deux sont reduites ici au meme
+     * chemin. Une URL qui ne designate pas le stockage du backend (CDN, autre
+     * hebergeur) est en revanche respectee telle quelle.
+     */
     public static function imageUrl(?string $path): ?string
     {
-        if (! $path) {
+        $path = trim((string) $path);
+
+        if ($path === '') {
             return null;
         }
 
-        if (str_starts_with($path, 'http')) {
+        // Une image deja presente dans la page n'a besoin d'aucun relais.
+        if (str_starts_with($path, 'data:')) {
             return $path;
         }
 
-        return rtrim(config('services.backend.storage_url'), '/').'/'.ltrim($path, '/');
+        if (self::estUrlAbsolue($path) && ! self::appartientAuBackend($path)) {
+            return $path;
+        }
+
+        $chemin = self::cheminStocke($path);
+
+        if ($chemin === null) {
+            // URL absolue du backend dont le prefixe n'a pas ete reconnu : on la
+            // laisse en place plutot que de pointer vers une adresse devinee.
+            return self::estUrlAbsolue($path) ? $path : null;
+        }
+
+        return url(self::MEDIA_PREFIX.$chemin);
+    }
+
+    /** Une URL absolue, quel que soit le schema. */
+    protected static function estUrlAbsolue(string $path): bool
+    {
+        return preg_match('#^[a-z][a-z0-9+.-]*://#i', $path) === 1;
+    }
+
+    /** L'URL designe-t-elle le dossier de fichiers du backend ? */
+    protected static function appartientAuBackend(string $url): bool
+    {
+        $base = parse_url(self::storageBaseUrl()) ?: [];
+        $cible = parse_url($url) ?: [];
+
+        if (($base['scheme'] ?? null) !== ($cible['scheme'] ?? null)
+            || ($base['host'] ?? null) !== ($cible['host'] ?? null)) {
+            return false;
+        }
+
+        $prefixe = rtrim((string) ($base['path'] ?? ''), '/').'/';
+
+        return $prefixe !== '/' && str_starts_with((string) ($cible['path'] ?? ''), $prefixe);
+    }
+
+    /**
+     * Chemin du fichier chez le backend, a partir d'un chemin relatif ou d'une
+     * URL complete du backend. Renvoie null si le prefixe de stockage n'est pas
+     * reconnu.
+     */
+    protected static function cheminStocke(string $path): ?string
+    {
+        if (! self::estUrlAbsolue($path)) {
+            return ltrim($path, '/');
+        }
+
+        $prefixe = rtrim((string) (parse_url(self::storageBaseUrl(), PHP_URL_PATH) ?: ''), '/').'/';
+        $chemin = (string) (parse_url($path, PHP_URL_PATH) ?: '');
+
+        if ($prefixe === '/' || ! str_starts_with($chemin, $prefixe)) {
+            return null;
+        }
+
+        return ltrim(substr($chemin, strlen($prefixe)), '/');
     }
 }

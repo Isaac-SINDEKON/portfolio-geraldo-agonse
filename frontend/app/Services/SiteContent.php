@@ -78,9 +78,9 @@ class SiteContent
 
             $label = trim((string) ($entry['label'] ?? ''));
             $number = trim((string) ($entry['number'] ?? ''));
-            $chiffres = preg_replace('/\D+/', '', $number);
+            $chiffres = self::chiffresWhatsapp($number);
 
-            if ($label === '' || $number === '' || ! is_string($chiffres) || strlen($chiffres) < 8) {
+            if ($label === '' || $number === '' || $chiffres === null) {
                 continue;
             }
 
@@ -97,15 +97,15 @@ class SiteContent
     }
 
     /** Nombre de WhatsApp à mettre en avant : réglage dédié ou numéro supplémentaire désigné. */
-    public function primaryWhatsappNumber(): string
+    public function primaryWhatsappNumber(): ?string
     {
         foreach ($this->extraPhones() as $phone) {
             if ($phone['is_primary']) {
-                return preg_replace('/\D+/', '', $phone['number']);
+                return self::chiffresWhatsapp($phone['number']);
             }
         }
 
-        return preg_replace('/\D+/', '', $this->setting('whatsapp'));
+        return self::chiffresWhatsapp($this->setting('whatsapp'));
     }
 
     protected function whatsappLinkFor(string $digits): string
@@ -123,7 +123,11 @@ class SiteContent
             'Bonjour '.$this->setting('name', 'Géraldo Perridys AGONSE').', je souhaite avoir plus d\'informations sur vos formations.'
         );
 
-        return 'https://wa.me/'.$digits.'?text='.urlencode($text);
+        if ($digits === null) {
+            return '#';
+        }
+
+        return 'https://wa.me/'.$digits.($text ? '?text='.urlencode($text) : '');
     }
 
     public function telUrl(): string
@@ -285,6 +289,70 @@ class SiteContent
     }
 
     /**
+     * Nombre au format exact attendu par WhatsApp.
+     *
+     * WhatsApp impose l'indicatif pays suivi du numero national SANS le prefixe
+     * national : "+229 01 67 20 00 02" doit devenir "229167200002". Un lien
+     * construit avec le 0 conserve ("wa.me/2290167200002") est refuse par
+     * WhatsApp, alors que ce meme numero reste parfaitement correct dans un
+     * lien tel:, qui lui attend l'ecriture internationale complete.
+     *
+     * D'ou deux normalisations distinctes dans cette classe : celle-ci pour
+     * WhatsApp, chiffresInternationales() pour le telephone.
+     */
+    public static function chiffresWhatsapp(?string $telephone): ?string
+    {
+        $brut = preg_replace('/\D+/', '', (string) $telephone) ?? '';
+
+        if ($brut === '') {
+            return null;
+        }
+
+        // Prefixe international 00 : le numero est deja complet.
+        if (str_starts_with($brut, '00')) {
+            $brut = substr($brut, 2);
+        }
+
+        // Le plus long indicatif passe en premier pour ne pas confondre 229
+        // avec un eventuel 2290...
+        $codes = array_keys(CountryPhones::PAYS);
+        usort($codes, fn ($a, $b) => strlen($b) <=> strlen($a));
+
+        foreach ($codes as $connu) {
+            if (preg_match('/^'.$connu.'\d/', $brut) === 1) {
+                return self::sansPrefixeNational(substr($brut, strlen($connu)), $connu);
+            }
+        }
+
+        if ($brut === '') {
+            return null;
+        }
+
+        // Aucun indicatif reconnu : on applique le pays par defaut.
+        return self::sansPrefixeNational($brut, CountryPhones::PAYS_PAR_DEFAUT);
+    }
+
+    /** Indicatif + numero national depouille de son prefixe national. */
+    protected static function sansPrefixeNational(string $national, string $indicatif): string
+    {
+        // Benin : le plan national commence toujours par "01", et cette paire
+        // ne figure jamais dans l'ecriture internationale ("229...").
+        if ($indicatif === '229') {
+            return $indicatif.(preg_match('/^01\d/', $national) === 1
+                ? substr($national, 2)
+                : $national);
+        }
+
+        $trunk = CountryPhones::trunk($indicatif);
+
+        if ($trunk !== '' && str_starts_with($national, $trunk)) {
+            $national = substr($national, strlen($trunk));
+        }
+
+        return $indicatif.$national;
+    }
+
+    /**
      * Reponse par email a un prospect : l'adresse est bien celle du client,
      * avec un objet et un corps deja rediges.
      */
@@ -315,6 +383,56 @@ class SiteContent
     public function imageUrl(?string $path): ?string
     {
         return ApiClient::imageUrl($path);
+    }
+
+    /**
+     * Compare le libelle d'un domaine a celui d'une formation.
+     *
+     * Le catalogue ne relie pas formellement les deux listes : le seul lien est
+     * leur libelle. Or ces libelles ne sont pas toujours identiques ("Gestion
+     * du temps" pour le domaine, "Gestion du temps et des priorites" pour la
+     * formation correspondante). Une comparaison stricte renvoyait alors une
+     * liste vide alors que la formation existe et est publiee.
+     *
+     * La comparaison se fait donc sur une forme normalisee : minuscules, sans
+     * diacritiques ni ponctuation, et l'un des deux libelles doit ouvrir l'autre.
+     */
+    public static function memeDomaine(?string $domaine, ?string $titre): bool
+    {
+        $a = self::normaliser($domaine);
+        $b = self::normaliser($titre);
+
+        // Trop court pour etre discriminant : on ne joue pas au hasard avec un
+        // libelle d'une ou deux lettres.
+        if (strlen($a) < 4 || strlen($b) < 4) {
+            return false;
+        }
+
+        return str_starts_with($a, $b) || str_starts_with($b, $a);
+    }
+
+    /** Forme de comparaison d'un libelle : minuscules, sans accents ni separateurs. */
+    protected static function normaliser(?string $libelle): string
+    {
+        $libelle = mb_strtolower(trim((string) $libelle));
+
+        // "clientele" et "clientèle" doivent se reconnaitre. L'extension intl
+        // n'est pas garantie sur tous les hebergeurs (Normalizer est absent),
+        // les diacritiques latin sont donc traduits explicitement.
+        $libelle = strtr($libelle, [
+            'à' => 'a', 'á' => 'a', 'â' => 'a', 'ã' => 'a', 'ä' => 'a', 'å' => 'a', 'ā' => 'a', 'ă' => 'a', 'ą' => 'a',
+            'ç' => 'c', 'ć' => 'c', 'č' => 'c',
+            'è' => 'e', 'é' => 'e', 'ê' => 'e', 'ë' => 'e', 'ē' => 'e', 'ĕ' => 'e', 'ė' => 'e', 'ę' => 'e', 'ě' => 'e',
+            'ì' => 'i', 'í' => 'i', 'î' => 'i', 'ï' => 'i', 'ī' => 'i', 'ĭ' => 'i', 'į' => 'i', 'ı' => 'i',
+            'ñ' => 'n', 'ń' => 'n', 'ņ' => 'n',
+            'ò' => 'o', 'ó' => 'o', 'ô' => 'o', 'õ' => 'o', 'ö' => 'o', 'ø' => 'o', 'ō' => 'o', 'ŏ' => 'o', 'ő' => 'o',
+            'ù' => 'u', 'ú' => 'u', 'û' => 'u', 'ü' => 'u', 'ū' => 'u', 'ŭ' => 'u', 'ů' => 'u', 'ű' => 'u', 'ų' => 'u',
+            'ý' => 'y', 'ÿ' => 'y',
+            'æ' => 'ae', 'œ' => 'oe', 'ß' => 'ss',
+        ]);
+
+        // Espaces, tirets et autres separateurs ne doivent pas changer le resultat.
+        return preg_replace('/[^\p{L}\p{N}]+/u', '', $libelle) ?? $libelle;
     }
 
     /** Transforme une textarea (une ligne = un element) en tableau. */

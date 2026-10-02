@@ -1,14 +1,15 @@
 <?php
 
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
-use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ContentController as AdminContentController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\FormationController as AdminFormationController;
 use App\Http\Controllers\Admin\GalleryController as AdminGalleryController;
 use App\Http\Controllers\Admin\LeadController as AdminLeadController;
 use App\Http\Controllers\Admin\ResourceController as AdminResourceController;
 use App\Http\Controllers\Admin\SettingsController as AdminSettingsController;
 use App\Http\Controllers\Admin\TestimonialController as AdminTestimonialController;
+use App\Http\Controllers\MediaController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\SitemapController;
 use Illuminate\Support\Facades\Route;
@@ -28,6 +29,21 @@ Route::get('/experience-expertise', [PageController::class, 'experience'])->name
 Route::get('/temoignages', [PageController::class, 'testimonials'])->name('testimonials');
 Route::get('/galerie', [PageController::class, 'gallery'])->name('gallery');
 Route::get('/contact', [PageController::class, 'contact'])->name('contact');
+
+/*
+|--------------------------------------------------------------------------
+| Images (relais vers le backend)
+|--------------------------------------------------------------------------
+|
+| Les images sont stockees par le backend mais servies par le frontend : le
+| navigateur n'a ainsi jamais a joindre le backend lui-meme pour afficher une
+| image. Voir App\Http\Controllers\MediaController.
+|
+*/
+
+Route::get('/media/{path}', MediaController::class)
+    ->where('path', 'uploads/.*')
+    ->name('media');
 
 /*
 |--------------------------------------------------------------------------
