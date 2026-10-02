@@ -34,6 +34,12 @@ class SettingsController extends AdminController
         $rules['seo_description'] = ['nullable', 'string', 'max:500'];
         $rules['seo_keywords'] = ['nullable', 'string', 'max:500'];
 
+        // Couleurs de marque : hexadécimal strict. La valeur est injectée telle
+        // quelle dans un attribut style, donc aucun caractère autre que # et
+        // 0-9a-f ne doit pouvoir passer jusqu'au CSS.
+        $rules['brand_color'] = ['nullable', 'string', 'regex:/^#[0-9a-fA-F]{6}$/'];
+        $rules['brand_accent'] = ['nullable', 'string', 'regex:/^#[0-9a-fA-F]{6}$/'];
+
         // Numéros supplémentaires (CC §22) : jusqu'à 10 lignes, chacune avec un
         // libellé et un numéro. Les lignes vides sont tolérées pour que le
         // propriétaire puisse ajouter une ligne avant de la remplir.
@@ -175,6 +181,12 @@ class SettingsController extends AdminController
     public static function fields(): array
     {
         return [
+            // Identité visuelle : la couleur de marque se change ici, sans
+            // toucher au code ni reconstruire les assets.
+            'brand_color' => ['label' => 'Couleur de la plateforme', 'type' => 'color', 'group' => 'Identité visuelle', 'hint' => 'Un seul choix : les nuances claires, les survols et les dégradés sont recalculés automatiquement.'],
+            'brand_accent' => ['label' => 'Couleur d\'accentuation', 'type' => 'color', 'group' => 'Identité visuelle', 'hint' => 'Teinte secondaire des dégradés et des halos. Bleu Nuit + Cyan pour une allure futuriste.'],
+            'clients' => ['label' => 'Organisations clientes (une par ligne)', 'type' => 'textarea', 'group' => 'Identité visuelle', 'hint' => 'Affichées dans le bandeau de confiance sous l\'accueil. Laissez vide pour masquer le bandeau.'],
+
             // Identite
             'name' => ['label' => 'Nom complet', 'type' => 'text', 'required' => true, 'group' => 'Identité'],
             'role' => ['label' => 'Fonction', 'type' => 'text', 'required' => true, 'group' => 'Identité'],

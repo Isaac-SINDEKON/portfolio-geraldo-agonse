@@ -35,6 +35,32 @@
                         @if ($field['type'] === 'textarea')
                             <textarea id="{{ $key }}" name="{{ $key }}" rows="4"
                                       @class(['field', 'field-error' => $errors->has($key)])>{{ old($key, $settings[$key] ?? '') }}</textarea>
+                        @elseif ($field['type'] === 'color')
+                            {{-- Sélecteur de couleur.
+
+                                 Un seul champ nommé est la source de vérité : les
+                                 pastilles le pilotent au lieu d'être des radios.
+                                 Deux contrôles partageant le même nom s'enverraient
+                                 en double, et le second l'emporterait au moment de
+                                 l'enregistrement — un ajustement fin se verrait
+                                 écrasé par le dernier preset choisi. --}}
+                            <div class="flex flex-wrap items-center gap-3"
+                                 x-data="{ teinte: @js(old($key, $settings[$key] ?? '#1d4ed8')) }">
+                                <input type="color" name="{{ $key }}" x-model="teinte"
+                                       @class(['h-11 w-16 cursor-pointer rounded-lg border border-slate-200 bg-white p-1', 'field-error' => $errors->has($key)])>
+
+                                <div class="flex flex-wrap gap-2" role="group" aria-label="Nuancier">
+                                    @foreach (['#1d4ed8', '#1e40af', '#0f172a', '#0e7490', '#047857', '#7c3aed', '#b45309', '#be123c'] as $teinte)
+                                        <button type="button"
+                                                title="{{ $teinte }}"
+                                                aria-label="Appliquer la teinte {{ $teinte }}"
+                                                class="h-8 w-8 rounded-full ring-offset-2 transition hover:scale-110"
+                                                :class="teinte === @js($teinte) ? 'ring-2 ring-slate-900' : ''"
+                                                style="background: {{ $teinte }}"
+                                                x-on:click="teinte = @js($teinte)"></button>
+                                    @endforeach
+                                </div>
+                            </div>
                         @else
                             <input type="{{ $field['type'] === 'email' ? 'email' : 'text' }}" id="{{ $key }}" name="{{ $key }}"
                                    value="{{ old($key, $settings[$key] ?? '') }}"

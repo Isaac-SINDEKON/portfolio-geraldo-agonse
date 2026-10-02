@@ -9,34 +9,69 @@
 |--------------------------------------------------------------------------
 | Identité visuelle (CC §19)
 |--------------------------------------------------------------------------
-| Direction artistique Biztar : blanc pur, sections slate-50, texte slate-900
-| pour un contraste B2B net. Bleu électrique en accentuation, safran réservé
-| aux petits badges. Le vert reste réservé à WhatsApp : c'est une convention
-| de reconnaissance, pas une couleur de marque.
+| Bleu Nuit + Cyan : bleu profond pour la confiance, accent lumineux pour la
+| dimension "futuriste". Fond blanc et sections slate-50 pour un contraste net.
+| Le vert reste réservé à WhatsApp : c'est une convention de reconnaissance,
+| pas une couleur de marque.
 |
-| Le bleu est défini explicitement (et non via la palette Tailwind par défaut)
-| pour garantir #2563EB en principal et #1D4ED8 au survol, comme sur la
-| maquette. Toutes les classes primary-* du site en découlent.
+| LA COULEUR EST PARAMÉTRABLE : un seul réglage "brand_color" suffit.
+|
+| Le nom --brand est le seul point d'entrée : toute la gamme est recalculée à
+| la volée par color-mix(), et @theme inline renvoie cette variable telle
+| quelle dans les classes utilitaires. Changer --brand recolore donc tout le
+| site immédiatement, sans reconstruire les assets.
+|
+| Le @theme inline est indispensable : sans lui, Tailwind figerait la valeur
+| de la variable dans le CSS compilé et le réglage n'aurait aucun effet.
 */
 
-@theme {
+:root {
+    --brand: #1d4ed8;
+    --brand-accent: #06b6d4;
+
+    /* Rampe claire : mélanges de la couleur de marque avec du blanc. */
+    --brand-50: color-mix(in oklab, var(--brand) 6%, white);
+    --brand-100: color-mix(in oklab, var(--brand) 12%, white);
+    --brand-200: color-mix(in oklab, var(--brand) 24%, white);
+    --brand-300: color-mix(in oklab, var(--brand) 42%, white);
+    --brand-400: color-mix(in oklab, var(--brand) 68%, white);
+
+    /* Rampe foncée : mélanges avec du noir, pour le survol et le contraste. */
+    --brand-500: color-mix(in oklab, var(--brand) 88%, white);
+    --brand-600: var(--brand);
+    --brand-700: color-mix(in oklab, var(--brand) 84%, black);
+    --brand-800: color-mix(in oklab, var(--brand) 68%, black);
+    --brand-900: color-mix(in oklab, var(--brand) 52%, black);
+}
+
+@theme inline {
     --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 
     /* Ombre douce : basse et diffuse, pour un rendu plat et premium. */
     --shadow-soft: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 8px 24px -12px rgb(15 23 42 / 0.12);
 
-    /* Bleu Biztar : 600 = #2563EB, 700 = #1D4ED8 (survol). */
-    --color-primary-50: #eff6ff;
-    --color-primary-100: #dbeafe;
-    --color-primary-200: #bfdbfe;
-    --color-primary-300: #93c5fd;
-    --color-primary-400: #60a5fa;
-    --color-primary-500: #3b82f6;
-    --color-primary-600: #2563eb;
-    --color-primary-700: #1d4ed8;
-    --color-primary-800: #1e40af;
-    --color-primary-900: #1e3a8a;
+    /* Lueur de marque : halo cyan, signature visuelle du thème. */
+    --shadow-glow: 0 18px 48px -18px color-mix(in oklab, var(--brand) 55%, transparent);
+
+    /* Bleu Nuit : toute la gamme dérive du réglage administrable. */
+    --color-primary-50: var(--brand-50);
+    --color-primary-100: var(--brand-100);
+    --color-primary-200: var(--brand-200);
+    --color-primary-300: var(--brand-300);
+    --color-primary-400: var(--brand-400);
+    --color-primary-500: var(--brand-500);
+    --color-primary-600: var(--brand-600);
+    --color-primary-700: var(--brand-700);
+    --color-primary-800: var(--brand-800);
+    --color-primary-900: var(--brand-900);
+
+    /* Cyan : accent lumineux des dégradés et des halos. */
+    --color-accent-50: color-mix(in oklab, var(--brand-accent) 8%, white);
+    --color-accent-100: color-mix(in oklab, var(--brand-accent) 16%, white);
+    --color-accent-400: color-mix(in oklab, var(--brand-accent) 70%, white);
+    --color-accent-500: var(--brand-accent);
+    --color-accent-600: color-mix(in oklab, var(--brand-accent) 88%, black);
 
     /* Safran : touches subtiles, petits badges uniquement. */
     --color-saffron-50: #fefce8;
@@ -48,10 +83,7 @@
     --color-saffron-600: #ca8a04;
     --color-saffron-700: #a16207;
 
-    /* Accent : réservé à WhatsApp et aux validations. */
-    --color-accent-500: #10b981;
-    --color-accent-600: #059669;
-
+    /* Convention de marque : le vert reste propre à WhatsApp. */
     --color-whatsapp: #25d366;
 }
 

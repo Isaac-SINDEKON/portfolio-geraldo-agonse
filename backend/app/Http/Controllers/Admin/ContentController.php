@@ -121,6 +121,15 @@ class ContentController extends Controller
             'settings.extra_phones.*.number' => 'nullable|string|max:40',
         ]);
 
+        // Couleurs de marque : hexadécimal strict. Ces valeurs sont relues par
+        // le frontend pour colorer le site via une variable CSS ; un contenu
+        // libre permit ici se retrouverait injecté tel quel dans une feuille de
+        // style.
+        $request->validate([
+            'settings.brand_color' => 'nullable|string|max:7|regex:/^#[0-9a-fA-F]{6}$/',
+            'settings.brand_accent' => 'nullable|string|max:7|regex:/^#[0-9a-fA-F]{6}$/',
+        ]);
+
         $settings = (array) $request->input('settings', []);
 
         foreach ($settings as $key => $value) {

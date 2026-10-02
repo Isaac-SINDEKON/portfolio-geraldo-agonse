@@ -1,5 +1,25 @@
 <!DOCTYPE html>
-<html lang="fr">
+{{-- La couleur de marque est posée ici, avant le chargement du CSS : toute la
+     gamme primary-* dérive de --brand dans app.css, un seul réglage suffit donc
+     à recolorer le site entier, sans rebuild. Un hexadécimal est validé côté
+     admin et recoupé ici, avant d'atteindre le CSS. --}}
+@php
+    $couleurs = [];
+
+    foreach ([
+        '--brand' => $site['settings']['brand_color'] ?? null,
+        '--brand-accent' => $site['settings']['brand_accent'] ?? null,
+    ] as $variable => $valeur) {
+        $valeur = is_string($valeur) ? trim($valeur) : '';
+
+        if (preg_match('/^#[0-9a-fA-F]{6}$/', $valeur) === 1) {
+            $couleurs[$variable] = $valeur;
+        }
+    }
+
+    $styleMarque = collect($couleurs)->map(fn ($v, $k) => $k.':'.$v)->implode('; ');
+@endphp
+<html lang="fr" @if ($styleMarque) style="{{ $styleMarque }}" @endif>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -32,7 +52,7 @@
         $shareDescription = \Illuminate\Support\Str::limit($lire('meta_description', (string) ($descriptionPage ?? ($seoDescription ?? ($settings['tagline'] ?? '')))), 200);
     @endphp
 
-    <title>@yield('title', $titlePage ?: ($seoTitle ?: $nom.' – '.$settings['role']))</title>
+    <title>@yield('title', $titlePage ?: ($seoTitle ?: $nom.' – '.($settings['role'] ?? '')))</title>
 
     <meta name="description" content="@yield('meta_description', $descriptionPage ?? ($seoDescription ?? $settings['tagline'] ?? ''))">
     @if ($seoKeywords)
