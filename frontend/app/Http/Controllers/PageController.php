@@ -19,6 +19,11 @@ class PageController extends Controller
             'reasons' => $site['reasons'],
             'formations' => array_slice($site['formations'], 0, 4),
             'testimonials' => array_slice($site['testimonials'], 0, 3),
+            // La galerie et le parcours shrew les deux preuves qui manquent le
+            // plus a l'accueil : des photos d'intervention et un dereoulement
+            // concret. Sans elles, la page reste une suite de cartes.
+            'galerie' => array_slice($site['gallery'], 0, 5),
+            'experiences' => $site['experiences'],
         ]);
     }
 
