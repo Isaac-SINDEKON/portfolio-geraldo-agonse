@@ -18,10 +18,10 @@
     $partageUrl = url()->current();
     $encode = fn ($v) => rawurlencode((string) $v);
 
-    // Theme : le pied de page est sombre, la section de page est claire.
+    // Theme : le pied de page est sombre, la section de page suit le thème.
     $sombre = $variant !== 'page';
-    $texteTitre = $sombre ? 'text-white' : 'text-slate-900';
-    $pastille = $sombre ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-slate-100 text-slate-700 hover:bg-slate-200';
+    $texteTitre = $sombre ? 'text-white' : 'text-ink';
+    $pastille = $sombre ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-surface text-copy hover:bg-primary-50 hover:text-primary-700';
 
     $liens = [
         [
@@ -51,8 +51,9 @@
     ];
 @endphp
 
-<div class="partage" data-partage data-titre="{{ $partageTitre }}" data-url="{{ $partageUrl }}">
-    <p class="flex items-center gap-2 text-sm font-bold {{ $texteTitre }}">
+<div class="partage flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
+     data-partage data-titre="{{ $partageTitre }}" data-url="{{ $partageUrl }}">
+    <p class="flex shrink-0 items-center gap-2 text-sm font-bold {{ $texteTitre }}">
         <svg class="h-4 w-4 shrink-0 text-primary-500" viewBox="0 0 24 24" fill="none" stroke="currentColor"
              stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="18" cy="5" r="3" />
@@ -63,7 +64,7 @@
         Partager cette page
     </p>
 
-    <ul class="mt-3 flex flex-wrap items-center gap-2">
+    <ul class="flex flex-wrap items-center gap-2">
         @foreach ($liens as $lien)
             <li>
                 <a href="{{ $lien['href'] }}"

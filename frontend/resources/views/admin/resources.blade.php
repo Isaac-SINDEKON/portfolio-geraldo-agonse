@@ -17,7 +17,7 @@
                @class([
                    'rounded-lg px-3 py-1.5 text-xs font-semibold transition',
                    'bg-primary-600 text-white' => $key === $resource,
-                   'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50' => $key !== $resource,
+                   'bg-surface text-copy ring-1 ring-line hover:bg-canvas' => $key !== $resource,
                ])>
                 {{ $meta['label'] }}
             </a>
@@ -25,7 +25,7 @@
     </div>
 
     <div x-data="{ open: false }" x-on:ouvrir-ajout.window="open = true">
-        <p class="mt-4 text-sm text-slate-500">{{ count($items) }} élément(s) enregistré(s).</p>
+        <p class="mt-4 text-sm text-muted">{{ count($items) }} élément(s) enregistré(s).</p>
 
         <section class="card mt-6" x-show="open" x-cloak
                  x-transition:enter="transition ease-out duration-200"
@@ -108,7 +108,7 @@
                 </form>
 
                 <form method="POST" action="{{ route('admin.resources.destroy', ['resource' => $resource, 'id' => $item['id']]) }}"
-                      class="mt-4 border-t border-slate-100 pt-4"
+                      class="mt-4 border-t border-line-soft pt-4"
                       onsubmit="return confirm('Supprimer définitivement cet élément ?')">
                     @csrf
                     @method('DELETE')
@@ -119,7 +119,7 @@
                 </form>
             </article>
             @empty
-                <p class="card text-center text-sm text-slate-500">Aucun élément enregistré pour cette section.</p>
+                <p class="card text-center text-sm text-muted">Aucun élément enregistré pour cette section.</p>
             @endforelse
         </div>
     </div>

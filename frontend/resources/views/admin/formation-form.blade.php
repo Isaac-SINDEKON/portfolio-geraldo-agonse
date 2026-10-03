@@ -10,7 +10,7 @@
     </a>
 
     <h1 class="mt-3 text-2xl font-extrabold">{{ $formation['title'] }}</h1>
-    <p class="mt-1 text-sm text-slate-500">Tous les champs modifiables sont éditables ici (CC §9).</p>
+    <p class="mt-1 text-sm text-muted">Tous les champs modifiables sont éditables ici (CC §9).</p>
 
     <form method="POST" action="{{ route('admin.formations.update', $formation['id']) }}" class="mt-6 space-y-6">
         @csrf
@@ -31,7 +31,7 @@
                     <label for="slug" class="field-label">Identifiant d'URL (slug)</label>
                     <input type="text" id="slug" name="slug" value="{{ old('slug', $formation['slug']) }}"
                            @class(['field', 'field-error' => $errors->has('slug')])>
-                    <p class="mt-1 text-xs text-slate-500">Laisser vide pour générer automatiquement.</p>
+                    <p class="mt-1 text-xs text-muted">Laisser vide pour générer automatiquement.</p>
                     @error('slug') <p class="field-message">{{ $message }}</p> @enderror
                 </div>
 
@@ -43,7 +43,7 @@
                 <div>
                     <label for="icon" class="field-label">Icône</label>
                     <input type="text" id="icon" name="icon" value="{{ old('icon', $formation['icon'] ?? '') }}" class="field">
-                    <p class="mt-1 text-xs text-slate-500">Ex. clock, chart, rocket, heart, target, users.</p>
+                    <p class="mt-1 text-xs text-muted">Ex. clock, chart, rocket, heart, target, users.</p>
                 </div>
             </div>
 
@@ -100,10 +100,10 @@
                 </div>
 
                 <div class="flex items-end">
-                    <label class="flex items-center gap-2 text-sm font-medium text-slate-700">
+                    <label class="flex items-center gap-2 text-sm font-medium text-ink">
                         <input type="checkbox" name="active" value="1"
                                @checked(old('active', $formation['active'] ?? true))
-                               class="h-4 w-4 rounded border-slate-300">
+                               class="h-4 w-4 rounded border-line">
                         Formation visible sur le site
                     </label>
                 </div>

@@ -4,7 +4,7 @@
 
 @section('content')
 
-    <p class="text-sm text-slate-500">
+    <p class="text-sm text-muted">
         Ajoutez et supprimez des photos : elles apparaissent dans la galerie publique avec visionneuse en grand format (CC §13).
     </p>
 
@@ -16,7 +16,7 @@
                 <label for="image" class="field-label">Image <span class="text-red-500">*</span></label>
                 <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/webp"
                        @class(['field', 'field-error' => $errors->has('image')]) required>
-                <p class="mt-1 text-xs text-slate-500">JPEG, PNG ou WebP, 5 Mo maximum.</p>
+                <p class="mt-1 text-xs text-muted">JPEG, PNG ou WebP, 5 Mo maximum.</p>
                 @error('image') <p class="field-message">{{ $message }}</p> @enderror
             </div>
 
@@ -45,7 +45,7 @@
                     <img src="{{ $url }}" alt="{{ $image['caption'] ?? 'Photo' }}"
                          class="aspect-4/3 w-full rounded-xl object-cover">
                 @else
-                    <div class="flex aspect-4/3 w-full items-center justify-center rounded-xl bg-slate-100 text-xs text-slate-500">
+                    <div class="flex aspect-4/3 w-full items-center justify-center rounded-xl bg-canvas text-xs text-muted">
                         Image indisponible
                     </div>
                 @endif
@@ -80,7 +80,7 @@
                 </form>
             </article>
         @empty
-            <p class="card text-center text-sm text-slate-500 sm:col-span-2 lg:col-span-3">Aucune image dans la galerie.</p>
+            <p class="card text-center text-sm text-muted sm:col-span-2 lg:col-span-3">Aucune image dans la galerie.</p>
         @endforelse
     </div>
 

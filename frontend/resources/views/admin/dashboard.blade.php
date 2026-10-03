@@ -11,7 +11,7 @@
 
 @section('content')
 
-    <p class="text-sm text-slate-500">
+    <p class="text-sm text-muted">
         Connecté en tant que {{ $adminUser['email'] ?? session('admin_user.email') ?? 'administrateur' }}.
         Voici l’activité récente du site.
     </p>
@@ -22,8 +22,8 @@
                 <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-50 text-primary-600">
                     <x-icon :name="$stat['icon']" class="h-5 w-5" />
                 </span>
-                <p class="mt-4 text-3xl font-extrabold text-slate-900">{{ $stat['value'] }}</p>
-                <p class="mt-1 text-xs font-semibold tracking-wide text-slate-500 uppercase">{{ $stat['label'] }}</p>
+                <p class="mt-4 text-3xl font-extrabold text-ink">{{ $stat['value'] }}</p>
+                <p class="mt-1 text-xs font-semibold tracking-wide text-muted uppercase">{{ $stat['label'] }}</p>
             </div>
         @endforeach
     </div>
@@ -37,15 +37,15 @@
             </div>
 
             @if (count($recentLeads))
-                <ul class="mt-4 divide-y divide-slate-100 text-sm">
+                <ul class="mt-4 divide-y divide-line-soft text-sm">
                     @foreach ($recentLeads as $lead)
                         <li class="flex items-start justify-between gap-3 py-3">
                             <div class="min-w-0">
                                 <a href="{{ route('admin.leads.show', $lead['id']) }}"
-                                   class="font-semibold text-slate-800 hover:text-primary-600">
+                                   class="font-semibold text-ink hover:text-primary-600">
                                     {{ $lead['data']['organisation'] ?? 'Organisation non précisée' }}
                                 </a>
-                                <p class="truncate text-slate-500">
+                                <p class="truncate text-muted">
                                     {{ $lead['data']['responsable'] ?? '' }}
                                     @if (! empty($lead['data']['theme']))
                                         · {{ $lead['data']['theme'] }}
@@ -63,7 +63,7 @@
                     @endforeach
                 </ul>
             @else
-                <p class="mt-4 rounded-xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500">
+                <p class="mt-4 rounded-xl border border-dashed border-line p-6 text-center text-sm text-muted">
                     Aucune demande reçue pour le moment.
                 </p>
             @endif
@@ -97,7 +97,7 @@
 
             <section class="card">
                 <h2 class="text-lg font-bold">Mot de passe</h2>
-                <p class="mt-2 text-sm text-slate-600">
+                <p class="mt-2 text-sm text-copy">
                     Après un changement de mot de passe, toutes les sessions actives sont révoquées.
                 </p>
                 <form method="POST" action="{{ route('admin.password.update') }}" class="mt-4 space-y-3">

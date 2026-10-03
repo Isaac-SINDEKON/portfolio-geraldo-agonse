@@ -14,10 +14,10 @@
             </button>
         </div>
     @else
-        <h2 id="titre-formulaire-devis" class="text-xl font-bold text-slate-900 sm:text-2xl">
+        <h2 id="titre-formulaire-devis" class="text-xl font-bold text-ink sm:text-2xl">
             Formulaire de demande de devis
         </h2>
-        <p class="mt-2 text-sm leading-relaxed text-slate-600">
+        <p class="mt-2 text-sm leading-relaxed text-copy">
             Tous les champs marqués <span class="text-red-500">*</span> sont nécessaires pour
             vous répondre. Le budget est facultatif.
         </p>
@@ -118,7 +118,7 @@
 
             <div class="sm:max-w-xs">
                 <label for="devis-budget" class="field-label">
-                    Budget indicatif <span class="font-normal text-slate-400">(facultatif)</span>
+                    Budget indicatif <span class="font-normal text-muted">(facultatif)</span>
                 </label>
                 <input type="text" id="devis-budget" wire:model="budget"
                        @class(['field', 'field-error' => $errors->has('budget')])
@@ -132,7 +132,7 @@
                     <span wire:loading wire:target="submit">Envoi en cours…</span>
                 </button>
 
-                <p class="text-xs text-slate-500">
+                <p class="text-xs text-muted">
                     Transmise à geraldoagonse@gmail.com, utilisée uniquement pour traiter votre demande.
                 </p>
             </div>

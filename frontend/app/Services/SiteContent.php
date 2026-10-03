@@ -2,9 +2,31 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Cache;
+
 class SiteContent
 {
     protected static ?array $cache = null;
+
+    /**
+     * Cache persistant du contenu, partage par tous les visiteurs.
+     *
+     * Le cache statique ci-dessus ne vit que le temps d'une requete : sans ce
+     * second niveau, chaque page repatriait le contenu depuis l'API, donc une
+     * requete HTTP bloquante par page, y compris pour un visiteur qui ne fait
+     * que changer de rubrique.
+     */
+    protected const CLE = 'site-contenu';
+
+    /** Duree pendant laquelle le contenu est tenu pour frais. */
+    protected const FRAICHEUR = 300;
+
+    /**
+     * Filet de securite : au-dela de la fraicheur on tente de rafraichir, mais
+     * une copie plus ancienne reste servie si l'API ne repond pas. Une coupure
+     * de quelques minutes cote backend ne doit pas rendre le site vide.
+     */
+    protected const DUREE = 86400;
 
     public function __construct(protected ApiClient $api)
     {
@@ -17,9 +39,50 @@ class SiteContent
             return static::$cache;
         }
 
-        $data = $this->api->get('/site') ?? [];
+        // Les tests simulent l'API avec Http::fake() et attendent un contenu
+// different d'un test a l'autre : un cache persistant les melangerait.
+// On le desactive donc pendant les tests plutot que de le vider entre
+        // chaque cas.
+        if (app()->runningUnitTests()) {
+            return static::$cache = $this->sections($this->api->get('/site') ?? []);
+        }
 
-        return static::$cache = [
+        $enveloppe = Cache::get(self::CLE);
+
+        if (is_array($enveloppe) && ($enveloppe['vu'] ?? 0) > time() - self::FRAICHEUR) {
+            return static::$cache = $enveloppe['donnees'];
+        }
+
+        $data = $this->api->get('/site');
+
+        // API injoignable : on prefere servir la derniere version connue a un
+        // site vide.
+        if (! is_array($data)) {
+            return static::$cache = is_array($enveloppe)
+                ? $enveloppe['donnees']
+                : $this->sections([]);
+        }
+
+        $donnees = $this->sections($data);
+
+        // Reponse vide alors qu'on attendait du contenu : c'est plus probablement
+        // une panne qu'un site legitement vide, donc on ne fige pas cette reponse.
+        if (($data['settings'] ?? []) === []) {
+            return static::$cache = is_array($enveloppe) ? $enveloppe['donnees'] : $donnees;
+        }
+
+        Cache::put(self::CLE, ['vu' => time(), 'donnees' => $donnees], self::DUREE);
+
+        return static::$cache = $donnees;
+    }
+
+    /**
+     * Ne garde que les sections attendues. Une cle en trop renvoyee par l'API
+     * ne doit pas se retrouver dans les vues.
+     */
+    protected function sections(array $data): array
+    {
+        return [
             'settings' => $data['settings'] ?? [],
             'domains' => $data['domains'] ?? [],
             'reasons' => $data['reasons'] ?? [],
@@ -31,9 +94,18 @@ class SiteContent
         ];
     }
 
+    /**
+     * Ouvre le cache. Appele apres chaque ecriture cote administration
+     * (AdminController::back), le changement est donc visible immediatement :
+     * la prochaine page relit l'API.
+     */
     public function forget(): void
     {
         static::$cache = null;
+
+        if (! app()->runningUnitTests()) {
+            Cache::forget(self::CLE);
+        }
     }
 
     public function setting(string $key, string $default = ''): string

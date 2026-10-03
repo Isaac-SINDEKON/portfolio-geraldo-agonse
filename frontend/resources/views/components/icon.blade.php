@@ -1,10 +1,14 @@
 @props(['name' => ''])
 
-{{-- La taille par defaut ne s'applique que si l'appelant n'en fournit pas :
-     merge() concatene les deux classes, et c'est alors la regle CSS la plus
-     tardive qui l'emporte, ce qui ecraserait la taille demandee. --}}
+{{-- Jeu d'icônes au trait : 24×24, contour de 2 px, extrémités arrondies.
+     C'est le dessin de Lucide, repris tel quel pour que l'ensemble du site
+     garde une seule thickness de trait.
+
+     La taille par défaut ne s'applique que si l'appelant n'en fournit pas :
+     merge() concatène les deux classes, et c'est alors la règle CSS la plus
+     tardive qui l'emporte, ce qui écraserait la taille demandée. --}}
 <svg {{ $attributes->class(['h-6 w-6' => ! $attributes->has('class')]) }} fill="none" viewBox="0 0 24 24"
-     stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     @switch($name)
         @case('search')
             <circle cx="11" cy="11" r="7" />
@@ -139,6 +143,79 @@
             @break
         @case('link')
             <path d="M10 13a5 5 0 007.5.5l3-3a5 5 0 00-7-7l-1.7 1.7M14 11a5 5 0 00-7.5-.5l-3 3a5 5 0 007 7l1.7-1.7" />
+            @break
+        @case('sun')
+            <circle cx="12" cy="12" r="4.5" />
+            <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+            @break
+        @case('moon')
+            <path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" />
+            @break
+        @case('chevron-down')
+            <path d="M6 9l6 6 6-6" />
+            @break
+        @case('zap')
+            <path d="M13 2L4.5 13H11l-1 9 8.5-11H12l1-9z" />
+            @break
+        @case('shield')
+            <path d="M12 3l7.5 3v5.5c0 4.5-3 8.3-7.5 9.5-4.5-1.2-7.5-5-7.5-9.5V6L12 3z" />
+            <path d="M9 12l2 2 4-4" />
+            @break
+        @case('calendar')
+            <rect x="3" y="5" width="18" height="16" rx="2" />
+            <path d="M3 10h18M8 3v4M16 3v4" />
+            @break
+        @case('flame')
+            <path d="M12 22c3.9 0 6.5-2.5 6.5-6 0-4.5-4.5-6.5-4-11.5-2.5 1.5-4 4-4 6.5-1-.6-1.6-1.6-1.8-3C6.5 10 5.5 12.5 5.5 16c0 3.5 2.6 6 6.5 6z" />
+            @break
+        @case('message')
+            <path d="M21 11.5a8.4 8.4 0 01-9 8.4 9 9 0 01-3.6-.8L3 21l1.9-4.9A8.4 8.4 0 0120.5 12c0 .5 0 1-.1 1.5z" />
+            @break
+        @case('compass')
+            <circle cx="12" cy="12" r="9" />
+            <path d="M15.5 8.5l-2 5-5 2 2-5 5-2z" />
+            @break
+        @case('award')
+            <circle cx="12" cy="9" r="6" />
+            <path d="M8.5 14.5L7 22l5-2.5L17 22l-1.5-7.5" />
+            @break
+        @case('handshake')
+            <path d="M11 7l2-2 3 1 3.5 3.5-2.5 2.5M3 9l4-3 4 .5M6.5 12.5l3 3 2-.5 2 2" />
+            @break
+        @case('arrow-up-right')
+            <path d="M7 17L17 7M8 7h9v9" />
+            @break
+        @case('timer')
+            <path d="M10 2h4M12 14l3-3M12 6a7 7 0 107 7 7 7 0 00-7-7z" />
+            @break
+        @case('badge-check')
+            <path d="M12 3l2.2 1.6 2.6-.3 1 2.5 2.2 1.4-.9 2.5.9 2.5-2.2 1.4-1 2.5-2.6-.3L12 21l-2.2-1.6-2.6.3-1-2.5L4 15.8l.9-2.5L4 10.8l2.2-1.4 1-2.5 2.6.3L12 3z" />
+            <path d="M9 12l2 2 4-4" />
+            @break
+        @case('globe')
+            <circle cx="12" cy="12" r="9" />
+            <path d="M3 12h18M12 3a15 15 0 010 18 15 15 0 010-18z" />
+            @break
+        @case('video')
+            <rect x="2" y="6" width="14" height="12" rx="2" />
+            <path d="M16 11l6-3v8l-6-3" />
+            @break
+        @case('list-checks')
+            <path d="M4 6h2M4 12h2M4 18h2M9 6h11M9 12h11M9 18h11" />
+            @break
+        @case('presentation')
+            <path d="M2 4h20M4 4v10a1 1 0 001 1h14a1 1 0 001-1V4M12 15v3M8.5 21l3.5-3 3.5 3" />
+            @break
+        @case('route')
+            <circle cx="6" cy="18" r="3" />
+            <circle cx="18" cy="6" r="3" />
+            <path d="M9 18h4a4 4 0 000-8H9a4 4 0 010-8h4" />
+            @break
+        @case('trending-up')
+            <path d="M3 17l6-6 4 4 8-8M15 7h6v6" />
+            @break
+        @case('scale')
+            <path d="M12 3v18M7 7l-4 7h8L7 7zM17 7l-4 7h8l-4-7zM8 21h8" />
             @break
         @default
             <circle cx="12" cy="12" r="9" />

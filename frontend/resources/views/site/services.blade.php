@@ -9,39 +9,64 @@
 @endphp
 
 {{-- EN-TÊTE (CC §16) --}}
-<section class="bg-slate-900 py-16 sm:py-20">
-    <div class="container-x">
+<section class="relative overflow-hidden bg-nuit py-16 text-white sm:py-24">
+    <div class="pointer-events-none absolute inset-0" aria-hidden="true">
+        <div class="grille-technique absolute inset-0"></div>
+        <div class="aurora aurora-1 -top-28 left-[6%] h-80 w-80 bg-primary-600/30"></div>
+    </div>
+
+    <div class="container-x relative">
         <nav aria-label="Fil d'Ariane" class="text-xs text-primary-200">
             <a href="{{ route('home') }}" class="transition hover:text-primary-300">Accueil</a>
             <span class="mx-2">/</span>
             <span class="text-white">Services aux entreprises</span>
         </nav>
-        <h1 class="mt-5 text-3xl font-extrabold text-white sm:text-4xl">Services aux entreprises</h1>
-        <p class="mt-4 max-w-2xl text-base text-primary-100">
-            Des prestations sur mesure pour armourer vos équipes et transformer durablement vos pratiques.
-        </p>
-        <a href="{{ route('contact', ['form' => 'devis']) }}" class="btn bg-white text-primary-700 hover:bg-primary-50 mt-8">
-            Demander un devis
-        </a>
+
+        <div class="mt-5 grid gap-8 lg:grid-cols-12 lg:items-end lg:gap-10">
+            <div class="lg:col-span-7">
+                <h1 class="text-3xl font-bold text-white sm:text-4xl lg:text-[2.75rem]">Services aux entreprises</h1>
+                <p class="mt-4 max-w-2xl text-base text-primary-100">
+                    Des prestations sur mesure pour armer vos équipes et transformer durablement vos pratiques.
+                </p>
+            </div>
+
+            <div class="lg:col-span-5 lg:text-right">
+                <x-magnetic-btn :href="route('contact', ['form' => 'devis'])" variante="light" icone="arrow-right">
+                    Demander un devis
+                </x-magnetic-btn>
+            </div>
+        </div>
     </div>
 </section>
 
-{{-- LISTE DES SERVICES --}}
-<section class="bg-white py-16 sm:py-20">
+{{-- LISTE DES SERVICES : bento de cartes inégales --}}
+<section class="bg-surface py-16 sm:py-20">
     <div class="container-x">
-        <div class="grid gap-6 md:grid-cols-2">
-            @forelse ($site['services'] ?? [] as $service)
-                <div class="card flex gap-5 transition hover:border-primary-300 hover:shadow-lg">
-                    <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-primary-600 text-white">
+        <x-section-title
+            eyebrow="Ce que je propose"
+            title="Des formats d’intervention adaptés"
+            text="Du format ponctuel à l'accompagnement dans la durée, chaque prestation est construite sur votre contexte." />
+
+        <div class="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-12" data-reveal-group data-reveal-step="110">
+            @forelse ($site['services'] ?? [] as $index => $service)
+                <div @class([
+                    'card card-lift flex gap-5',
+                    'lg:col-span-7' => $index === 0,
+                    'lg:col-span-5' => $index === 1,
+                    'lg:col-span-6' => $index >= 2,
+                ])>
+                    <span class="halo-survol pointer-events-none absolute inset-0" aria-hidden="true"></span>
+
+                    <span class="card-icon-solid relative h-14 w-14 shrink-0 rounded-2xl">
                         <x-icon :name="$service['icon'] ?? 'building'" class="h-6 w-6" />
                     </span>
-                    <div>
+                    <div class="relative">
                         <h2 class="text-lg leading-snug font-bold">{{ $service['title'] }}</h2>
-                        <p class="mt-2 text-sm leading-relaxed text-slate-600">{{ $service['description'] }}</p>
+                        <p class="mt-2 text-sm leading-relaxed text-copy">{{ $service['description'] }}</p>
                     </div>
                 </div>
             @empty
-                <p class="col-span-full text-center text-slate-500">Les services seront bientôt disponibles.</p>
+                <p class="col-span-full text-center text-muted">Les services seront bientôt disponibles.</p>
             @endforelse
         </div>
     </div>
@@ -57,15 +82,16 @@
     ];
 @endphp
 
-<section class="bg-slate-50 py-16 sm:py-20">
+<section class="bg-canvas py-16 sm:py-20">
     <div class="container-x">
-        <x-section-title eyebrow="Comment ça se passe" title="Un accompagnement en quatre étapes" />
+        <x-section-title eyebrow="Comment ça se passe" title="Un accompagnement en quatre étapes"
+                         text="Un interlocuteur unique du premier échange jusqu'au suivi final." />
 
         <ol class="mt-12 grid gap-6 md:grid-cols-4">
             @foreach ($process as $step)
                 <li class="card">
                     <h3 class="text-base font-bold">{{ $step['title'] }}</h3>
-                    <p class="mt-2 text-sm leading-relaxed text-slate-600">{{ $step['text'] }}</p>
+                    <p class="mt-2 text-sm leading-relaxed text-copy">{{ $step['text'] }}</p>
                 </li>
             @endforeach
         </ol>

@@ -4,7 +4,7 @@
 
 @section('content')
 
-    <p class="text-sm text-slate-500">
+    <p class="text-sm text-muted">
         Identité, coordonnées, textes de la page À propos, galerie et référencement. Les modifications sont
         appliquées immédiatement sur le site public.
     </p>
@@ -16,7 +16,13 @@
         }
     @endphp
 
-    <form method="POST" action="{{ route('admin.settings.update') }}" enctype="multipart/form-data" class="mt-6 space-y-6">
+    {{-- La suppression d'une image n'est immediate qu'a l'enregistrement : la
+         case a cocher ne fait que marquer l'intention. La confirmation se pose
+         donc au moment de valider, la ou l'action devient reelle — sinon on
+         interroge l'utilisateur avant qu'il n'ait choisi. --}}
+    <form method="POST" action="{{ route('admin.settings.update') }}" enctype="multipart/form-data" class="mt-6 space-y-6"
+          x-data="{}"
+          x-on:submit="if (document.querySelector('input[name$=\'_remove\']:checked') && ! window.confirm('Retirer definitivement l\'image selectionnee ? Cette action est irreversible.')) { $event.preventDefault(); }">
         @csrf
 
         @foreach ($grouped as $groupName => $groupFields)
@@ -47,7 +53,7 @@
                             <div class="flex flex-wrap items-center gap-3"
                                  x-data="{ teinte: @js(old($key, $settings[$key] ?? '#1d4ed8')) }">
                                 <input type="color" name="{{ $key }}" x-model="teinte"
-                                       @class(['h-11 w-16 cursor-pointer rounded-lg border border-slate-200 bg-white p-1', 'field-error' => $errors->has($key)])>
+                                       @class(['h-11 w-16 cursor-pointer rounded-lg border border-line bg-white p-1', 'field-error' => $errors->has($key)])>
 
                                 <div class="flex flex-wrap gap-2" role="group" aria-label="Nuancier">
                                     @foreach (['#1d4ed8', '#1e40af', '#0f172a', '#0e7490', '#047857', '#7c3aed', '#b45309', '#be123c'] as $teinte)
@@ -55,7 +61,7 @@
                                                 title="{{ $teinte }}"
                                                 aria-label="Appliquer la teinte {{ $teinte }}"
                                                 class="h-8 w-8 rounded-full ring-offset-2 transition hover:scale-110"
-                                                :class="teinte === @js($teinte) ? 'ring-2 ring-slate-900' : ''"
+                                                :class="teinte === @js($teinte) ? 'ring-2 ring-ink' : ''"
                                                 style="background: {{ $teinte }}"
                                                 x-on:click="teinte = @js($teinte)"></button>
                                     @endforeach
@@ -69,7 +75,7 @@
                         @endif
 
                         @if (! empty($field['hint']))
-                            <p class="mt-1 text-xs text-slate-500">{{ $field['hint'] }}</p>
+                            <p class="mt-1 text-xs text-muted">{{ $field['hint'] }}</p>
                         @endif
                         @error($key) <p class="field-message">{{ $message }}</p> @enderror
                     </div>
@@ -82,7 +88,7 @@
                                      rogner dans l'apercu, comme dans l'affichage reel. --}}
                                 <img src="{{ $imageUrl }}" alt="{{ $field['label'] }}"
                                      @class([
-                                         'h-24 w-24 rounded-xl border border-slate-200',
+                                         'h-24 w-24 rounded-xl border border-line',
                                          'object-contain p-1' => ($field['preview'] ?? null) === 'contain',
                                          'object-cover' => ($field['preview'] ?? null) !== 'contain',
                                      ])>
@@ -93,13 +99,13 @@
                             </label>
                             <input type="file" id="{{ $key }}-file" name="{{ $key }}"
                                    accept="image/jpeg,image/png,image/webp" class="sr-only">
-                            <p class="text-xs text-slate-500">JPEG, PNG ou WebP, 5 Mo maximum.</p>
+                            <p class="text-xs text-muted">JPEG, PNG ou WebP, 5 Mo maximum.</p>
                         </div>
 
                         @if ($imageUrl)
                             <label for="{{ $key }}-remove" class="mt-3 flex w-fit cursor-pointer items-center gap-2 text-xs font-medium text-red-600 hover:text-red-700">
                                 <input type="checkbox" id="{{ $key }}-remove" name="{{ $key }}_remove" value="1"
-                                       class="h-4 w-4 rounded border-slate-300 text-red-600 focus:ring-red-500">
+                                       class="h-4 w-4 rounded border-line text-red-600 focus:ring-red-500">
                                 Retirer l'image
                             </label>
                         @endif
@@ -110,7 +116,7 @@
                      autant qu'il le souhaite (CC §22, sur le modèle des diplômes
                      et services extensibles des §4 et §10). --}}
                 @if ($groupName === 'Coordonnées')
-                    <div class="mt-6 border-t border-slate-200 pt-5"
+                    <div class="mt-6 border-t border-line pt-5"
                          x-data="{
                             phones: {{ Js::from($extraPhones) }},
                             add() { this.phones.push({ label: '', number: '', is_whatsapp: false }) },
@@ -124,8 +130,8 @@
 
                         <div class="flex flex-wrap items-start justify-between gap-3">
                             <div>
-                                <h3 class="text-base font-bold text-slate-900">Numéros supplémentaires</h3>
-                                <p class="mt-1 max-w-xl text-xs text-slate-500">
+                                <h3 class="text-base font-bold text-ink">Numéros supplémentaires</h3>
+                                <p class="mt-1 max-w-xl text-xs text-muted">
                                     Ajoutez d'autres numéros (bureau, second mobile, numéro d'un autre pays…).
                                     Chacun devient cliquable sur le site. Un seul peut porter le badge
                                     WhatsApp pour le bouton flottant (CC §17).
@@ -143,14 +149,14 @@
                         <input type="hidden" name="extra_phones_present" value="1">
 
                         <template x-if="phones.length === 0">
-                            <p class="mt-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center text-xs text-slate-500">
+                            <p class="mt-4 rounded-xl border border-dashed border-line bg-canvas px-4 py-6 text-center text-xs text-muted">
                                 Aucun numéro supplémentaire. Utilisez « Ajouter un numéro » pour en créer un.
                             </p>
                         </template>
 
                         <div class="mt-4 space-y-3">
                             <template x-for="(phone, i) in phones" :key="i">
-                                <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                                <div class="rounded-xl border border-line bg-canvas p-3">
                                     <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto]">
                                         <div>
                                             <label :for="'phone-label-' + i" class="field-label text-xs">Libellé</label>
@@ -175,12 +181,12 @@
                                         </div>
                                     </div>
 
-                                    <label class="mt-3 flex cursor-pointer items-center gap-2 text-xs font-medium text-slate-700">
+                                    <label class="mt-3 flex cursor-pointer items-center gap-2 text-xs font-medium text-ink">
                                         <input type="checkbox" value="1"
                                                :name="'extra_phones[' + i + '][is_whatsapp]'"
                                                x-model="phone.is_whatsapp"
                                                @change="onlyOne(i)"
-                                               class="rounded border-slate-300 text-primary-600 focus:ring-primary-500">
+                                               class="rounded border-line text-primary-600 focus:ring-primary-500">
                                         Utiliser ce numéro pour le bouton WhatsApp flottant
                                     </label>
                                 </div>

@@ -14,7 +14,7 @@
 @section('content')
 
     <div x-data="{ open: false }" x-on:ouvrir-formation.window="open = true">
-        <p class="text-sm text-slate-500">Durée, contenu et modalités restent modifiables (CC §9).</p>
+        <p class="text-sm text-muted">Durée, contenu et modalités restent modifiables (CC §9).</p>
 
         {{-- Formulaire de creation --}}
         <section class="card mt-6" x-show="open" x-cloak
@@ -77,8 +77,8 @@
                 </div>
 
                 <div class="flex items-end">
-                    <label class="flex items-center gap-2 text-sm font-medium text-slate-700">
-                        <input type="checkbox" name="active" value="1" @checked(old('active', true)) class="h-4 w-4 rounded border-slate-300">
+                    <label class="flex items-center gap-2 text-sm font-medium text-ink">
+                        <input type="checkbox" name="active" value="1" @checked(old('active', true)) class="h-4 w-4 rounded border-line">
                         Formation visible sur le site
                     </label>
                 </div>
@@ -99,16 +99,16 @@
                         <div class="flex flex-wrap items-center gap-2">
                             <h2 class="text-lg font-bold">{{ $formation['title'] }}</h2>
                             @if (! ($formation['active'] ?? true))
-                                <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">Masquée</span>
+                                <span class="rounded-full bg-canvas px-2.5 py-0.5 text-xs font-semibold text-copy">Masquée</span>
                             @endif
                         </div>
-                        <p class="mt-1 text-sm text-slate-500">
+                        <p class="mt-1 text-sm text-muted">
                             {{ $formation['duree'] ?? 'Durée non définie' }}
                             @if (! empty($formation['public_cible']))
                                 · {{ $formation['public_cible'] }}
                             @endif
                         </p>
-                        <p class="mt-2 line-clamp-2 text-sm text-slate-600">{{ $formation['description'] ?? '' }}</p>
+                        <p class="mt-2 line-clamp-2 text-sm text-copy">{{ $formation['description'] ?? '' }}</p>
                     </div>
 
                     <div class="flex shrink-0 items-center gap-2">
@@ -130,7 +130,7 @@
                 </div>
             </article>
             @empty
-                <p class="card text-center text-sm text-slate-500">Aucune formation enregistrée.</p>
+                <p class="card text-center text-sm text-muted">Aucune formation enregistrée.</p>
             @endforelse
         </div>
     </div>

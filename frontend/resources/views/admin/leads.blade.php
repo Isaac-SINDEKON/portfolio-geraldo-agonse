@@ -4,7 +4,7 @@
 
 @section('content')
 
-    <p class="text-sm text-slate-500">Formulaires « Demander une formation » et « Demander un devis » (CC §14 et §15).</p>
+    <p class="text-sm text-muted">Formulaires « Demander une formation » et « Demander un devis » (CC §14 et §15).</p>
 
     <form method="GET" action="{{ route('admin.leads.index') }}" role="search"
           class="mt-4 flex flex-wrap items-end gap-2">
@@ -15,7 +15,7 @@
         <div class="min-w-0 flex-1">
             <label for="lead-search" class="field-label text-xs">Rechercher une demande</label>
             <div class="relative">
-                <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
+                <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted">
                     <x-icon name="search" class="h-4 w-4" />
                 </span>
                 <input id="lead-search" type="search" name="q" value="{{ $q }}" maxlength="100"
@@ -59,7 +59,7 @@
                @class([
                    'rounded-lg px-3 py-1.5 transition',
                    'bg-primary-600 text-white' => $type === $key,
-                   'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50' => $type !== $key,
+                   'bg-surface text-copy ring-1 ring-line hover:bg-canvas' => $type !== $key,
                ])>
                 {{ $label }}
             </a>
@@ -67,9 +67,9 @@
     </div>
 
     @if ($q !== '')
-        <p class="mt-4 text-sm text-slate-500" role="status">
+        <p class="mt-4 text-sm text-muted" role="status">
             {{ count($leads) }} {{ count($leads) > 1 ? 'demandes trouvées' : 'demande trouvée' }}
-            pour « <span class="font-semibold text-slate-700">{{ $q }}</span> ».
+            pour « <span class="font-semibold text-ink">{{ $q }}</span> ».
         </p>
     @endif
 
@@ -94,7 +94,7 @@
                     <div class="min-w-0">
                         <div class="flex flex-wrap items-center gap-2">
                             <a href="{{ route('admin.leads.show', $lead['id']) }}"
-                               class="text-lg font-bold break-words text-slate-900 hover:text-primary-600">
+                               class="text-lg font-bold break-words text-ink hover:text-primary-600">
                                 {{ $data['organisation'] ?? 'Organisation non précisée' }}
                             </a>
                             <span @class([
@@ -106,19 +106,19 @@
                             </span>
                         </div>
 
-                        <p class="mt-1 text-sm text-slate-600">
+                        <p class="mt-1 text-sm text-copy">
                             {{ $data['responsable'] ?? '' }}
                             @if (! empty($data['fonction']))
                                 · {{ $data['fonction'] }}
                             @endif
                         </p>
-                        <p class="mt-1 text-sm text-slate-500">
+                        <p class="mt-1 text-sm text-muted">
                             {{ $data['theme'] ?? '' }}
                             @if (! empty($data['participants']))
                                 · {{ $data['participants'] }} participant(s)
                             @endif
                         </p>
-                        <p class="mt-1 text-xs text-slate-400">
+                        <p class="mt-1 text-xs text-muted">
                             Reçue le {{ \Illuminate\Support\Carbon::parse($lead['created_at'] ?? now())->format('d/m/Y à H:i') }}
                         </p>
                     </div>
@@ -156,7 +156,7 @@
                 </div>
             </article>
         @empty
-            <p class="card text-center text-sm text-slate-500">
+            <p class="card text-center text-sm text-muted">
                 @if ($q !== '')
                     Aucune demande ne correspond à « {{ $q }} ».
                     <a href="{{ route('admin.leads.index', $type ? ['type' => $type] : []) }}"

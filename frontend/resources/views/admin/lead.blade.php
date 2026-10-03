@@ -39,10 +39,10 @@
 
     <div class="flex flex-wrap items-start justify-between gap-3">
         <div class="min-w-0">
-            <h1 class="break-words text-xl font-extrabold text-slate-900 sm:text-2xl">
+            <h1 class="break-words text-xl font-extrabold text-ink sm:text-2xl">
                 {{ $organ !== '' ? $organ : 'Organisation non précisée' }}
             </h1>
-            <p class="mt-1 text-sm text-slate-500">
+            <p class="mt-1 text-sm text-muted">
                 Reçue le {{ \Illuminate\Support\Carbon::parse($lead['created_at'] ?? now())->format('d/m/Y à H:i') }}
             </p>
         </div>
@@ -58,8 +58,8 @@
 
     {{-- Actions de reponse : WhatsApp, appel et email du client (CC §5) --}}
     <section class="card mt-5">
-        <h2 class="text-base font-bold text-slate-900">Contacter ce client</h2>
-        <p class="mt-1 text-sm text-slate-500">
+        <h2 class="text-base font-bold text-ink">Contacter ce client</h2>
+        <p class="mt-1 text-sm text-muted">
             Les coordonnées ci-dessous sont celles saisies par le client dans sa demande.
         </p>
 
@@ -86,7 +86,7 @@
             @endif
 
             @unless ($lienWhatsapp || $lienTel || $lienMail)
-                <p class="text-sm text-slate-500">Aucune coordonnée exploitable n'a été renseignée.</p>
+                <p class="text-sm text-muted">Aucune coordonnée exploitable n'a été renseignée.</p>
             @endunless
         </div>
 
@@ -121,29 +121,29 @@
     @endphp
 
     <section class="card mt-5">
-        <h2 class="text-base font-bold text-slate-900">Informations transmises</h2>
+        <h2 class="text-base font-bold text-ink">Informations transmises</h2>
 
         <dl class="mt-4 grid gap-4 sm:grid-cols-2">
             @foreach ($champsCourts as $label => $value)
                 @continue(blank($value))
                 <div class="min-w-0">
-                    <dt class="text-xs font-semibold tracking-wide text-slate-500 uppercase">{{ $label }}</dt>
-                    <dd class="mt-1 text-sm break-words text-slate-800">{{ $value }}</dd>
+                    <dt class="text-xs font-semibold tracking-wide text-muted uppercase">{{ $label }}</dt>
+                    <dd class="mt-1 text-sm break-words text-ink">{{ $value }}</dd>
                 </div>
             @endforeach
         </dl>
 
-        <dl class="mt-5 grid gap-4 border-t border-slate-200 pt-5 sm:grid-cols-2">
+        <dl class="mt-5 grid gap-4 border-t border-line pt-5 sm:grid-cols-2">
             <div class="min-w-0">
-                <dt class="text-xs font-semibold tracking-wide text-slate-500 uppercase">Téléphone / WhatsApp</dt>
+                <dt class="text-xs font-semibold tracking-wide text-muted uppercase">Téléphone / WhatsApp</dt>
                 <dd class="mt-1 text-sm break-words">
                     @if ($lienTel)
                         <a href="{{ $lienTel }}" class="font-semibold text-primary-700 hover:underline">{{ $telephone }}</a>
                     @else
-                        <span class="text-slate-800">{{ $telephone !== '' ? $telephone : 'Non renseigné' }}</span>
+                        <span class="text-ink">{{ $telephone !== '' ? $telephone : 'Non renseigné' }}</span>
                     @endif
                     @if ($indicatif !== '')
-                        <span class="mt-0.5 block text-xs text-slate-500">
+                        <span class="mt-0.5 block text-xs text-muted">
                             {{ \App\Services\CountryPhones::nom(preg_replace('/\D+/', '', $indicatif)) }}
                             — lien international :
                             {{ \App\Services\SiteContent::prospectTelUrl($telephone, $indicatif) === null ? 'non généré' : str_replace('tel:+', '+', (string) \App\Services\SiteContent::prospectTelUrl($telephone, $indicatif)) }}
@@ -153,12 +153,12 @@
             </div>
 
             <div class="min-w-0">
-                <dt class="text-xs font-semibold tracking-wide text-slate-500 uppercase">Email</dt>
+                <dt class="text-xs font-semibold tracking-wide text-muted uppercase">Email</dt>
                 <dd class="mt-1 text-sm break-all">
                     @if ($lienMail)
                         <a href="{{ $lienMail }}" class="font-semibold text-primary-700 hover:underline">{{ $email }}</a>
                     @else
-                        <span class="text-slate-800">{{ $email !== '' ? $email : 'Non renseigné' }}</span>
+                        <span class="text-ink">{{ $email !== '' ? $email : 'Non renseigné' }}</span>
                     @endif
                 </dd>
             </div>
@@ -167,8 +167,8 @@
 
     @foreach ($textesLongs as $label => $texte)
         <section class="card mt-5">
-            <h2 class="text-base font-bold text-slate-900">{{ $label }}</h2>
-            <p class="mt-3 max-w-prose text-sm leading-relaxed break-words whitespace-pre-line text-slate-800">
+            <h2 class="text-base font-bold text-ink">{{ $label }}</h2>
+            <p class="mt-3 max-w-prose text-sm leading-relaxed break-words whitespace-pre-line text-ink">
                 {{ $texte }}
             </p>
         </section>

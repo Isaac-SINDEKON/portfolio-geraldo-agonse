@@ -6,16 +6,21 @@
 
 @section('content')
 
-    <section class="bg-slate-900 py-16 sm:py-20">
-        <div class="container-x">
-            <p class="label-eyebrow text-primary-200">Contact</p>
-            <h1 class="mt-3 max-w-3xl text-3xl font-extrabold text-white sm:text-4xl">
-                Parlons de vos besoins en formation
-            </h1>
-            <p class="mt-4 max-w-2xl text-base text-primary-100">
-                {{ $site['settings']['role'] ?? 'Formateur' }} professionnel au Bénin et au Togo.
-                Describez votre besoin : je vous réponds avec une proposition adaptée.
-            </p>
+    {{-- Bandeau de page : toujours sombre, y compris en thème clair. C'est le
+         repère visuel qui dit au visiteur « vous êtes arrivé quelque part ». --}}
+    <section class="relative overflow-hidden bg-nuit py-16 text-white sm:py-24">
+        <div class="pointer-events-none absolute inset-0" aria-hidden="true">
+            <div class="grille-technique absolute inset-0"></div>
+            <div class="aurora aurora-1 -top-32 left-[6%] h-96 w-96 bg-primary-600/30"></div>
+        </div>
+
+        <div class="container-x relative">
+            <x-section-title
+                variante="sombre"
+                align="gauche"
+                eyebrow="Contact"
+                title="Parlons de vos besoins en formation"
+                text="{{ $site['settings']['role'] ?? 'Formateur' }} professionnel au Bénin et au Togo. Décrivez votre besoin : je vous réponds avec une proposition adaptée." />
         </div>
     </section>
 
@@ -24,81 +29,80 @@
          affiche le formulaire de formation, cliquer « devis » affiche celui du
          devis. Le composant Livewire reçoit le choix et n'affiche que les
          champs correspondants. --}}
-    <section class="border-b border-slate-200 bg-white py-10 sm:py-14"
+    <section class="border-b border-line-soft bg-surface py-10 sm:py-14"
+             data-reveal="up"
              x-data="{ type: '{{ request()->query('form') === 'devis' ? 'devis' : 'formation' }}' }"
              x-on:demande-type-applique.window="type = $event.detail.type">
         <div class="container-x">
-            <div class="max-w-2xl">
-                <p class="label-eyebrow">Votre demande</p>
-                <h2 class="mt-3 text-2xl font-extrabold text-slate-900 sm:text-3xl">
-                    Que souhaitez-vous me confier ?
-                </h2>
-                <p class="mt-3 text-base text-slate-600">
-                    Choisissez le type de demande : le formulaire juste à côté change
-                    et affiche uniquement les champs utiles.
-                </p>
-            </div>
+            <x-section-title
+                eyebrow="Votre demande"
+                title="Que souhaitez-vous me confier ?"
+                text="Choisissez le type de demande : le formulaire juste à côté change et affiche uniquement les champs utiles." />
 
-            <div class="mt-7 grid gap-4 sm:grid-cols-2" role="group" aria-label="Type de demande">
+            <div class="mt-8 grid gap-4 sm:grid-cols-2" role="group" aria-label="Type de demande">
                 <button type="button"
                         id="choisir-formation"
                         data-type="formation"
                         @click="type = 'formation'; $dispatch('demande-type', 'formation'); document.getElementById('formulaire-demande')?.scrollIntoView({ behavior: 'smooth', block: 'start' })"
-                        :aria-pressed="type === 'formation' ? 'true' : 'false'"                        :class="type === 'formation'
+                        :aria-pressed="type === 'formation' ? 'true' : 'false'"
+                        :class="type === 'formation'
                             ? 'border-primary-600 bg-primary-50/60 shadow-soft'
-                            : 'border-slate-200 bg-white hover:border-primary-400 hover:bg-primary-50/50 hover:shadow-soft'"
+                            : 'border-line-soft bg-surface hover:border-primary-400 hover:bg-primary-50/40 hover:shadow-soft'"
                         class="choix-demande group flex items-start gap-4 rounded-2xl border-2 p-5 text-left transition sm:p-6">
                     <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition"
                           :class="type === 'formation'
-                              ? 'bg-primary-600 text-white'
-                              : 'bg-primary-100 text-primary-700 group-hover:bg-primary-600 group-hover:text-white'">
+                              ? 'bg-primary-600 text-on-brand'
+                              : 'bg-primary-100 text-primary-700 group-hover:bg-primary-600 group-hover:text-on-brand'">
                         <x-icon name="graduation" class="h-6 w-6" />
                     </span>
                     <span class="min-w-0">
                         <span class="flex flex-wrap items-center gap-2">
-                            <span class="text-base font-extrabold text-slate-900">Demander une formation</span>
+                            <span class="text-base font-bold text-ink">Demander une formation</span>
                             <span x-show="type === 'formation'" x-cloak
-                                  class="rounded-full bg-primary-600 px-2 py-0.5 text-[11px] font-bold text-white">
+                                  class="rounded-full bg-primary-600 px-2 py-0.5 text-[11px] font-bold text-on-brand">
                                 Sélectionné
                             </span>
                         </span>
-                        <span class="mt-1 block text-sm leading-relaxed text-slate-600">
+                        <span class="mt-1 block text-sm leading-relaxed text-copy">
                             Un programme du catalogue : durée, contenu, format et nombre de participants.
                         </span>
-                        <span class="mt-2 block text-xs leading-relaxed text-slate-500">
+                        <span class="mt-2 block text-xs leading-relaxed text-muted">
                             Champs : organisation, responsable, fonction, téléphone, email, thème,
                             participants, format, date souhaitée, message.
                         </span>
                     </span>
                 </button>
 
+                {{-- Le devis garde une teinte propre : pastille sombre au lieu
+                     d'un aplat d'accent, sinon les deux cartes se confondraient
+                     puisque l'accent du thème est unique. --}}
                 <button type="button"
                         id="choisir-devis"
                         data-type="devis"
                         @click="type = 'devis'; $dispatch('demande-type', 'devis'); document.getElementById('formulaire-devis')?.scrollIntoView({ behavior: 'smooth', block: 'start' })"
                         :aria-pressed="type === 'devis' ? 'true' : 'false'"
                         :class="type === 'devis'
-                            ? 'border-accent-500 bg-accent-500/10 shadow-soft'
-                            : 'border-slate-200 bg-white hover:border-accent-500 hover:bg-accent-500/5 hover:shadow-soft'"
+                            ? 'border-primary-600 bg-primary-50/60 shadow-soft'
+                            : 'border-line-soft bg-surface hover:border-primary-400 hover:bg-primary-50/40 hover:shadow-soft'"
                         class="choix-demande group flex items-start gap-4 rounded-2xl border-2 p-5 text-left transition sm:p-6">
                     <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition"
                           :class="type === 'devis'
-                              ? 'bg-accent-500 text-white'
-                              : 'bg-accent-500/15 text-accent-600 group-hover:bg-accent-500 group-hover:text-white'">
+                              ? 'bg-nuit text-white'
+                              : 'bg-nuit/10 text-ink group-hover:bg-nuit group-hover:text-white'">
                         <x-icon name="briefcase" class="h-6 w-6" />
                     </span>
                     <span class="min-w-0">
                         <span class="flex flex-wrap items-center gap-2">
-                            <span class="text-base font-extrabold text-slate-900">Demander un devis</span>
+                            <span class="text-base font-bold text-ink">Demander un devis</span>
                             <span x-show="type === 'devis'" x-cloak
-                                  class="rounded-full bg-accent-500 px-2 py-0.5 text-[11px] font-bold text-white">
+                                  class="rounded-full bg-nuit px-2 py-0.5 text-[11px] font-bold text-white">
                                 Sélectionné
                             </span>
                         </span>
-                        <span class="mt-1 block text-sm leading-relaxed text-slate-600">
+                        <span class="mt-1 block text-sm leading-relaxed text-copy">
                             Un besoin sur mesure : intra-entreprise, atelier pratique ou équipe commerciale.
                         </span>
-                        <span class="mt-2 block text-xs leading-relaxed text-slate-500">
+                        <span class="mt-2 block text-xs leading-relaxed text-muted">
                             Champs : organisation, responsable, téléphone, email, thème,
                             participants, ville, date, durée, besoins particuliers, budget indicatif.
                         </span>
@@ -108,22 +112,23 @@
         </div>
     </section>
 
-    <section class="bg-slate-50 py-14 sm:py-20">
-        <div class="container-x grid gap-10 lg:grid-cols-3">
-            {{-- Coordonnees (CC §16) --}}
-            <aside class="space-y-4 lg:sticky lg:top-28 lg:self-start">
+    <section class="bg-canvas py-14 sm:py-20">
+        <div class="container-x grid gap-10 lg:grid-cols-12 lg:gap-12">
+            {{-- Coordonnees (CC §16) : 4 colonnes, elle reste lisible sans
+                 jamais descendre sous la moitié de la largeur. --}}
+            <aside class="space-y-4 lg:col-span-4 lg:self-start lg:sticky lg:top-28">
                 <div class="card">
                     <h2 class="text-lg font-bold">Coordonnées directes</h2>
                     <ul class="mt-4 space-y-4 text-sm">
                         <li>
                             <a href="{{ $content->whatsappUrl() }}" target="_blank" rel="noopener"
-                               class="flex items-start gap-3 rounded-xl p-2 transition hover:bg-accent-500/10">
+                               class="flex items-start gap-3 rounded-xl p-2 transition hover:bg-primary-50">
                                 <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-whatsapp/15 text-whatsapp">
                                     <x-icon name="whatsapp" class="h-5 w-5" />
                                 </span>
                                 <span class="min-w-0">
-                                    <span class="block font-semibold text-slate-800">WhatsApp</span>
-                                    <span class="block text-slate-600">
+                                    <span class="block font-semibold text-ink">WhatsApp</span>
+                                    <span class="block text-copy">
                                         {{-- Le service renvoie le numéro désigné parmi les
                                              numéros supplémentaires, ou le numéro
                                              principal si aucun n'est désigné. --}}
@@ -139,8 +144,8 @@
                                     <x-icon name="phone" class="h-5 w-5" />
                                 </span>
                                 <span>
-                                    <span class="block font-semibold text-slate-800">Téléphone</span>
-                                    <span class="block text-slate-600">
+                                    <span class="block font-semibold text-ink">Téléphone</span>
+                                    <span class="block text-copy">
                                         {{ $site['settings']['phone_display'] ?? $site['settings']['phone'] ?? '' }}
                                     </span>
                                 </span>
@@ -153,8 +158,8 @@
                                     <x-icon name="mail" class="h-5 w-5" />
                                 </span>
                                 <span class="min-w-0">
-                                    <span class="block font-semibold text-slate-800">Email</span>
-                                    <span class="block break-all text-slate-600">{{ $site['settings']['email'] ?? '' }}</span>
+                                    <span class="block font-semibold text-ink">Email</span>
+                                    <span class="block break-all text-copy">{{ $site['settings']['email'] ?? '' }}</span>
                                 </span>
                             </a>
                         </li>
@@ -164,8 +169,8 @@
                                     <x-icon name="map" class="h-5 w-5" />
                                 </span>
                                 <span>
-                                    <span class="block font-semibold text-slate-800">Localisation</span>
-                                    <span class="block text-slate-600">{{ $site['settings']['location'] }}</span>
+                                    <span class="block font-semibold text-ink">Localisation</span>
+                                    <span class="block text-copy">{{ $site['settings']['location'] }}</span>
                                 </span>
                             </li>
                         @endif
@@ -175,12 +180,12 @@
                          est cliquable, en appel direct et sur WhatsApp. --}}
                     @php $supplementaires = $content->extraPhones(); @endphp
                     @if ($supplementaires !== [])
-                        <div class="mt-5 border-t border-slate-200 pt-4">
-                            <h3 class="text-sm font-bold text-slate-800">Autres numéros</h3>
+                        <div class="mt-5 border-t border-line-soft pt-4">
+                            <h3 class="text-sm font-bold text-ink">Autres numéros</h3>
                             <ul class="mt-3 space-y-3 text-sm">
                                 @foreach ($supplementaires as $phone)
                                     <li class="flex flex-wrap items-center gap-x-3 gap-y-1">
-                                        <span class="font-semibold text-slate-800">{{ $phone['label'] }}</span>
+                                        <span class="font-semibold text-ink">{{ $phone['label'] }}</span>
                                         <a href="{{ $phone['tel'] }}" class="text-primary-700 underline decoration-primary-300 underline-offset-2 hover:decoration-primary-600">
                                             {{ $phone['number'] }}
                                         </a>
@@ -197,23 +202,29 @@
                     @endif
                 </div>
 
-                <div class="rounded-2xl bg-slate-900 p-6 text-slate-300">
-                    <h2 class="text-lg font-bold text-white">Besoin d’une réponse rapide ?</h2>
-                    <p class="mt-2 text-sm leading-relaxed">
-                        Écrivez directement sur WhatsApp : c’est le canal le plus rapide pour
-                        une demande de formation ou un devis.
-                    </p>
-                    <a href="{{ $content->whatsappUrl() }}" target="_blank" rel="noopener" class="btn-whatsapp mt-5 w-full">
-                        <x-icon name="whatsapp" class="h-5 w-5" />
-                        Écrire sur WhatsApp
-                    </a>
+                <div class="relative overflow-hidden rounded-2xl bg-nuit p-6 text-slate-300">
+                    <div class="pointer-events-none absolute inset-0" aria-hidden="true">
+                        <div class="grille-technique absolute inset-0"></div>
+                    </div>
+
+                    <div class="relative">
+                        <h2 class="text-lg font-bold text-white">Besoin d’une réponse rapide ?</h2>
+                        <p class="mt-2 text-sm leading-relaxed">
+                            Écrivez directement sur WhatsApp : c’est le canal le plus rapide pour
+                            une demande de formation ou un devis.
+                        </p>
+                        <a href="{{ $content->whatsappUrl() }}" target="_blank" rel="noopener" class="btn-whatsapp mt-5 w-full">
+                            <x-icon name="whatsapp" class="h-5 w-5" />
+                            Écrire sur WhatsApp
+                        </a>
+                    </div>
                 </div>
             </aside>
 
             {{-- Deux formulaires réellement distincts (CC §14 et §15).
                  Chacun a ses propres champs et son propre bouton. Les cartes du
                  haut servent uniquement à faire défiler vers le formulaire voulu. --}}
-            <div class="space-y-8 lg:col-span-2">
+            <div class="space-y-8 lg:col-span-8">
                 <div id="formulaire-demande"
                      class="card scroll-mt-28 sm:p-8">
                     <livewire:demande-formation />

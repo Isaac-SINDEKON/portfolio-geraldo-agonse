@@ -10,17 +10,17 @@
 </head>
     {{-- min-h-dvh plutôt que min-h-screen : la hauteur suit la barre d'adresse
          du navigateur mobile, qui apparaît puis disparaît au défilement. --}}
-    <body class="flex min-h-dvh items-center justify-center overflow-x-hidden bg-slate-900 px-4 py-8 sm:py-10">
+    <body class="flex min-h-dvh items-center justify-center overflow-x-hidden bg-nuit px-4 py-8 sm:py-10">
         <div class="w-full max-w-md">
             <div class="text-center">
                 <x-marque variante="connexion" />
                 <h1 class="mt-4 text-xl font-extrabold text-white">Espace administration</h1>
-                <p class="mt-1.5 text-sm text-slate-300">
+                <p class="mt-1.5 text-sm text-muted">
                     {{ config('app.name') }}
                 </p>
             </div>
 
-            <div class="mt-6 rounded-2xl border border-slate-100 bg-white p-6">
+            <div class="mt-6 rounded-2xl border border-line-soft bg-white p-6">
 
             @if (session('success'))
                 <div class="mb-5 flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 p-4 text-sm font-medium text-green-800" role="status">
@@ -58,13 +58,13 @@
                 <button type="submit" class="btn-submit">Se connecter</button>
             </form>
 
-            <p class="mt-5 border-t border-slate-100 pt-4 text-center text-xs text-slate-500">
+            <p class="mt-5 border-t border-line-soft pt-4 text-center text-xs text-muted">
                 Accès réservé à l'administrateur du site.
             </p>
         </div>
 
         <p class="mt-5 text-center">
-            <a href="{{ route('home') }}" class="text-sm text-slate-300 underline-offset-4 transition-colors hover:text-white">
+            <a href="{{ route('home') }}" class="text-sm text-muted underline-offset-4 transition-colors hover:text-white">
                 Retour au site
             </a>
         </p>

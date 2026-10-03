@@ -1,8 +1,12 @@
 <!DOCTYPE html>
-{{-- La couleur de marque est posée ici, avant le chargement du CSS : toute la
-     gamme primary-* dérive de --brand dans app.css, un seul réglage suffit donc
-     à recolorer le site entier, sans rebuild. Un hexadécimal est validé côté
-     admin et recoupé ici, avant d'atteindre le CSS. --}}
+{{-- Les deux couleurs venues de l'administration sont recopiées sur <html>,
+     validées ici avant d'atteindre le CSS (cf. BrandColorTest).
+
+     Elles ne pilotent plus la palette publique : la maquette « Bento Grid »
+     fixe son identité visuelle dans app.css via `--accent-base` (indigo en
+     clair, or en sombre). Les deux variables restent émises pour ne pas casser
+     le contrat historique du réglage, et restent exploitables par une
+     éventuelle retouche de marque. --}}
 @php
     $couleurs = [];
 
@@ -79,9 +83,58 @@
 
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
 
+{{-- Inter pour le corps de texte, Playfair Display pour les H1 et H2 :
+         deux polices, deux registres. Les deux sont Chargées en une seule
+         requête et avec display=swap, donc aucun texte n'est invisible. --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,500&display=swap" rel="stylesheet">
+
+    {{-- Thème clair / sombre et moteur d'animation : deux décisions prises
+         AVANT le premier rendu, sinon la page clignoterait. Ce script est donc
+         volontairement en ligne et minimal — il ne depend ni de Vite ni de
+         Livewire, qui arrivent plus tard dans le document.
+
+         1. La classe `js` autorise app.css a masquer les blocs `data-reveal`.
+            Sans elle, aucun bloc ne reste invisible si le script echoue.
+         2. Le sombre est le theme PRINCIPAL : il s'applique donc par defaut.
+            Un choix explicite du visiteur est memorise et prime ensuite sur la
+            preference systeme. --}}
+    <script>
+        (function () {
+            var racine = document.documentElement
+
+            racine.classList.add('js')
+
+            var memoire = null
+
+            try {
+                memoire = localStorage.getItem('theme-portfolio')
+            } catch (erreur) {
+                // Navigation privee : le defaut du site s'applique.
+            }
+
+            var sombre = memoire === 'sombre'
+                || (memoire !== 'clair' && ! window.matchMedia('(prefers-color-scheme: light)').matches)
+
+            racine.classList.toggle('dark', sombre)
+            racine.dataset.theme = memoire === 'clair' || memoire === 'sombre'
+                ? memoire
+                : (sombre ? 'sombre' : 'clair')
+            racine.style.colorScheme = sombre ? 'dark' : 'light'
+
+            // Repli de securite : si le moteur d'animation ne demarre pas,
+            // les blocs `data-reveal` sont affiches immediatement plutot que
+            // de laisser une page a moitie invisible.
+            setTimeout(function () {
+                if (! window.reinitialiserAnimations) {
+                    document.querySelectorAll('[data-reveal]').forEach(function (bloc) {
+                        bloc.classList.add('est-visible')
+                    })
+                }
+            }, 4000)
+        })();
+    </script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
@@ -123,7 +176,15 @@
 
     @stack('structured-data')
 </head>
-<body class="min-h-screen bg-white">
+<body class="min-h-screen bg-canvas">
+    {{-- Barre de progression de lecture : fil de 3 px colle sous l'en-tete.
+         Le deplacement est applique en CSS a partir de la variable --scroll
+         (cf. app.js), donc aucune mesure de largeur n'est ecrite dans le DOM. --}}
+    <div class="pointer-events-none fixed inset-x-0 top-0 z-50 h-0.5 bg-transparent" aria-hidden="true">
+        <div data-barre-progression
+             class="barre-progression h-full w-full bg-gradient-to-r from-primary-500 via-accent-400 to-primary-600 shadow-[0_0_14px_var(--halo)]"></div>
+    </div>
+
     <a href="#contenu"
        class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-primary-600 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white">
         Aller au contenu principal

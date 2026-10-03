@@ -12,7 +12,7 @@
 @section('content')
 
     <div x-data="{ open: false }" x-on:ouvrir-ajout.window="open = true">
-        <p class="text-sm text-slate-500">Citation, nom, fonction et photo facultative (CC §12).</p>
+        <p class="text-sm text-muted">Citation, nom, fonction et photo facultative (CC §12).</p>
 
         <section class="card mt-6" x-show="open" x-cloak
                  x-transition:enter="transition ease-out duration-200"
@@ -56,8 +56,8 @@
                     </div>
                 </div>
 
-                <label class="flex items-center gap-2 text-sm font-medium text-slate-700">
-                    <input type="checkbox" name="active" value="1" @checked(old('active', true)) class="h-4 w-4 rounded border-slate-300">
+                <label class="flex items-center gap-2 text-sm font-medium text-ink">
+                    <input type="checkbox" name="active" value="1" @checked(old('active', true)) class="h-4 w-4 rounded border-line">
                     Publier ce témoignage
                 </label>
 
@@ -122,10 +122,10 @@
                             </div>
 
                             <div class="flex items-end">
-                                <label class="flex items-center gap-2 text-sm font-medium text-slate-700">
+                                <label class="flex items-center gap-2 text-sm font-medium text-ink">
                                     <input type="checkbox" name="active" value="1"
                                            @checked(old('active', $testimonial['active'] ?? true))
-                                           class="h-4 w-4 rounded border-slate-300">
+                                           class="h-4 w-4 rounded border-line">
                                     Publié
                                 </label>
                             </div>
@@ -135,7 +135,7 @@
                     </form>
 
                     <form method="POST" action="{{ route('admin.testimonials.destroy', $testimonial['id']) }}"
-                          class="mt-4 border-t border-slate-100 pt-4"
+                          class="mt-4 border-t border-line-soft pt-4"
                           onsubmit="return confirm('Supprimer définitivement ce témoignage ?')">
                         @csrf
                         @method('DELETE')
@@ -146,7 +146,7 @@
                     </form>
                 </article>
             @empty
-                <p class="card text-center text-sm text-slate-500">Aucun témoignage enregistré.</p>
+                <p class="card text-center text-sm text-muted">Aucun témoignage enregistré.</p>
             @endforelse
         </div>
     </div>

@@ -65,7 +65,7 @@
         ];
     @endphp
 
-    <p class="max-w-3xl text-sm text-slate-600">
+    <p class="max-w-3xl text-sm text-copy">
         Chaque rubrique se modifie sans toucher au code. Les changements sont appliqués
         immédiatement sur le site public.
     </p>
@@ -79,8 +79,8 @@
         </span>
 
         <span class="min-w-0 flex-1">
-            <span class="block text-base font-bold text-slate-900">Présentation &amp; coordonnées</span>
-            <span class="mt-1 block text-sm text-slate-600">
+            <span class="block text-base font-bold text-ink">Présentation &amp; coordonnées</span>
+            <span class="mt-1 block text-sm text-copy">
                 Nom, fonction, accroche, photos, textes de la page À propos, référencement
                 et numéros de téléphone.
             </span>
@@ -96,20 +96,20 @@
         @foreach ($sections as $section)
             @php $url = route($section['route'], $section['params'] ?? []); @endphp
             <a href="{{ $url }}"
-               class="group flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-soft transition hover:-translate-y-0.5 hover:border-primary-300 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
+               class="group flex flex-col rounded-2xl border border-line bg-surface p-5 shadow-soft transition hover:-translate-y-0.5 hover:border-primary-300 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
 
                 <div class="flex items-start justify-between gap-3">
                     <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-700 transition group-hover:bg-primary-600 group-hover:text-white">
                         <x-icon :name="$section['icone']" class="h-5 w-5" />
                     </span>
 
-                    <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600">
+                    <span class="rounded-full bg-canvas px-2.5 py-1 text-xs font-bold text-copy">
                         {{ $section['nombre'] }} {{ $section['nombre'] > 1 ? 'éléments' : 'élément' }}
                     </span>
                 </div>
 
-                <h2 class="mt-4 text-base font-bold text-slate-900">{{ $section['titre'] }}</h2>
-                <p class="mt-1.5 flex-1 text-sm leading-relaxed text-slate-600">{{ $section['texte'] }}</p>
+                <h2 class="mt-4 text-base font-bold text-ink">{{ $section['titre'] }}</h2>
+                <p class="mt-1.5 flex-1 text-sm leading-relaxed text-copy">{{ $section['texte'] }}</p>
 
                 <span class="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-700">
                     Modifier

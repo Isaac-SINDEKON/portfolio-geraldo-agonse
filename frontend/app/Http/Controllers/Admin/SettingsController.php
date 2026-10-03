@@ -181,10 +181,11 @@ class SettingsController extends AdminController
     public static function fields(): array
     {
         return [
-            // Identité visuelle : la couleur de marque se change ici, sans
-            // toucher au code ni reconstruire les assets.
-            'brand_color' => ['label' => 'Couleur de la plateforme', 'type' => 'color', 'group' => 'Identité visuelle', 'hint' => 'Un seul choix : les nuances claires, les survols et les dégradés sont recalculés automatiquement.'],
-            'brand_accent' => ['label' => 'Couleur d\'accentuation', 'type' => 'color', 'group' => 'Identité visuelle', 'hint' => 'Teinte secondaire des dégradés et des halos. Bleu Nuit + Cyan pour une allure futuriste.'],
+            // Identité visuelle : les deux couleurs sont conservées comme
+            // référence de marque. La palette affichée par la maquette publique
+            // est définie dans app.css (indigo / or).
+            'brand_color' => ['label' => 'Couleur de la plateforme', 'type' => 'color', 'group' => 'Identité visuelle', 'hint' => 'Couleur de référence enregistrée avec la marque. La maquette publique affiche l\'indigo en thème clair et l\'or en thème sombre.'],
+            'brand_accent' => ['label' => 'Couleur d\'accentuation', 'type' => 'color', 'group' => 'Identité visuelle', 'hint' => 'Teinte secondaire de référence. Elle ne recolore plus le site public, dont la palette est fixée par la maquette.'],
             'clients' => ['label' => 'Organisations clientes (une par ligne)', 'type' => 'textarea', 'group' => 'Identité visuelle', 'hint' => 'Affichées dans le bandeau de confiance sous l\'accueil. Laissez vide pour masquer le bandeau.'],
 
             // Identite
