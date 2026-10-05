@@ -1,22 +1,22 @@
-﻿@php
-    // Menu de l'administration. Les libellÃ©s reprennent ceux du site public
-    // (CC Â§6) : le propriÃ©taire retrouve le mÃªme vocabulaire des deux cÃ´tÃ©s.
+@php
+    // Menu de l'administration. Les libellés reprennent ceux du site public
+    // (CC §6) : le propriétaire retrouve le même vocabulaire des deux côtés.
     //
-    // Chaque entrÃ©e porte son nom de route et son URL. Les entrÃ©es qui
-    // partagent une mÃªme page (les quatre rubriques d'admin.resources.index)
-    // sont distinguÃ©es par le segment {resource} de l'URL.
+    // Chaque entrée porte son nom de route et son URL. Les entrées qui
+    // partagent une même page (les quatre rubriques d'admin.resources.index)
+    // sont distinguées par le segment {resource} de l'URL.
     $menu = [
         ['route' => 'admin.dashboard', 'label' => 'Tableau de bord', 'icon' => 'dashboard'],
-        ['route' => 'admin.leads.index', 'label' => 'Demandes reÃ§ues', 'icon' => 'inbox'],
+        ['route' => 'admin.leads.index', 'label' => 'Demandes reçues', 'icon' => 'inbox'],
 
         ['route' => 'admin.resources.index', 'resource' => 'domains', 'label' => 'Accueil', 'icon' => 'target'],
         ['route' => 'admin.resources.index', 'resource' => 'reasons', 'label' => 'Raisons de solliciter', 'icon' => 'sparkles'],
 
-        ['route' => 'admin.settings.edit', 'label' => 'IdentitÃ© & coordonnÃ©es', 'icon' => 'settings'],
+        ['route' => 'admin.settings.edit', 'label' => 'Identité & coordonnées', 'icon' => 'settings'],
         ['route' => 'admin.formations.index', 'label' => 'Formations', 'icon' => 'graduation'],
         ['route' => 'admin.resources.index', 'resource' => 'services', 'label' => 'Services entreprises', 'icon' => 'building'],
-        ['route' => 'admin.resources.index', 'resource' => 'experiences', 'label' => 'ExpÃ©rience', 'icon' => 'briefcase'],
-        ['route' => 'admin.testimonials.index', 'label' => 'TÃ©moignages', 'icon' => 'quote'],
+        ['route' => 'admin.resources.index', 'resource' => 'experiences', 'label' => 'Expérience', 'icon' => 'briefcase'],
+        ['route' => 'admin.testimonials.index', 'label' => 'Témoignages', 'icon' => 'quote'],
         ['route' => 'admin.gallery.index', 'label' => 'Galerie', 'icon' => 'gallery'],
     ];
 
@@ -25,8 +25,8 @@
     }
     unset($entree);
 
-    // Une entrÃ©e est active si l'URL visitÃ©e correspond Ã  sa route, ou Ã  l'une
-    // de ses sous-pages (Ã©dition d'une formation, dÃ©tail d'une demande).
+    // Une entrée est active si l'URL visitée correspond à sa route, ou à l'une
+    // de ses sous-pages (édition d'une formation, détail d'une demande).
     $estActif = function (array $entree): bool {
         $motifs = [$entree['route']];
 
@@ -51,15 +51,15 @@
             }
         }
 
-        // La page Â« Contenu du site Â» est un point d'entree vers la meme
-        // edition que l'entree Â« IdentitÃ© & coordonnÃ©es Â».
+        // La page « Contenu du site » est un point d'entree vers la meme
+        // edition que l'entree « Identité & coordonnées ».
         return $entree['route'] === 'admin.settings.edit'
             && request()->routeIs('admin.content.index');
     };
 @endphp
 
-{{-- ============================= GRAND Ã‰CRAN =============================
-     Barre latÃ©rale verticale, fixe, reprenant la structure du site. --}}
+{{-- ============================= GRAND ÉCRAN =============================
+     Barre latérale verticale, fixe, reprenant la structure du site. --}}
 <aside class="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-line bg-surface lg:flex">
     <a href="{{ route('admin.dashboard') }}"
        class="flex h-16 shrink-0 items-center gap-3 border-b border-line px-5 transition hover:bg-canvas">
@@ -102,14 +102,14 @@
             <button type="submit"
                     class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-600 transition hover:bg-red-50">
                 <x-icon name="logout" class="h-5 w-5" />
-                Se dÃ©connecter
+                Se déconnecter
             </button>
         </form>
     </div>
 </aside>
 
-{{-- ============================= PETIT Ã‰CRAN =============================
-     MÃªme structure, dans un tiroir pilotÃ© par le bouton Â« trois traits Â». --}}
+{{-- ============================= PETIT ÉCRAN =============================
+     Même structure, dans un tiroir piloté par le bouton « trois traits ». --}}
 {{-- Le sticky porte sur CE conteneur et non sur le <header> : le sticky est
      borne par la hauteur de son parent, or ce wrapper ne contient que la
      barre de 4rem (le tiroir etant en position fixed). En le collant au
@@ -181,7 +181,7 @@
                 <button type="submit"
                         class="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50">
                     <x-icon name="logout" class="h-5 w-5" />
-                    Se dÃ©connecter
+                    Se déconnecter
                 </button>
             </form>
         </div>

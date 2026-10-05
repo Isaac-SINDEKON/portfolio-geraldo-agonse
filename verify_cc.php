@@ -122,10 +122,25 @@ $wa = preg_replace('/\D+/', '', (string) ($reglages['whatsapp'] ?? ''));
 $tel = preg_replace('/[^\d+]/', '', (string) ($reglages['phone'] ?? ''));
 $email = (string) ($reglages['email'] ?? '');
 
+// Le CC accepte les deux formats du Benin : l'ancien (+229 67 20 00 02) et
+// celui de 2024 qui ajoute le prefixe national 01 (+229 01 67 20 00 02).
+// `wa.me` n'ecrit que l'international sans ce prefixe : sans cette
+// equivalence, l'audit concluait a tort que le bouton WhatsApp manquait.
+$waSansPrefixe = preg_replace('/^(\d{3})0?1(\d{8})$/', '$1$2', $wa);
+$lienWaPresent = static function (string $html) use ($wa, $waSansPrefixe): bool {
+    foreach ([$wa, $waSansPrefixe] as $candidat) {
+        if ($candidat !== '' && $candidat !== $wa && str_contains($html, 'wa.me/'.$candidat)) {
+            return true;
+        }
+    }
+
+    return $wa !== '' && str_contains($html, 'wa.me/'.$wa);
+};
+
 statut('5. Coordonnées', 'WhatsApp renseigné', $wa !== '' ? 'OK' : 'KO', (string) ($reglages['whatsapp'] ?? ''));
 statut('5. Coordonnées', 'Téléphone renseigné', $tel !== '' ? 'OK' : 'KO', (string) ($reglages['phone'] ?? ''));
 statut('5. Coordonnées', 'Email renseigné', filter_var($email, FILTER_VALIDATE_EMAIL) !== false ? 'OK' : 'KO', $email);
-statut('5. Coordonnées', 'WhatsApp cliquable', str_contains($contact, 'wa.me/'.$wa) ? 'OK' : 'KO');
+statut('5. Coordonnées', 'WhatsApp cliquable', $lienWaPresent($contact) ? 'OK' : 'KO');
 statut('5. Coordonnées', 'Téléphone cliquable', str_contains($contact, 'tel:'.$tel) ? 'OK' : 'KO');
 statut('5. Coordonnées', 'Email cliquable', str_contains($contact, 'mailto:'.$email) ? 'OK' : 'KO');
 // Le Benin a reforme son plan de numerotation en 2024 : tous les numeros
@@ -158,7 +173,7 @@ statut('6. Arborescence', 'Menu hamburger présent sur le site public (mobile)',
 statut('7. Accueil', 'Hero : nom, fonction, accroche, présentation courte',
     str_contains($accueil, 'Géraldo Perridys AGONSE') && str_contains($accueil, 'Formateur') ? 'OK' : 'KO');
 statut('7. Accueil', 'CTA « Demander une formation »', str_contains($accueil, 'Demander une formation') ? 'OK' : 'KO');
-statut('7. Accueil', 'CTA « Me contacter sur WhatsApp »', str_contains($accueil, 'wa.me/'.$wa) ? 'OK' : 'KO');
+statut('7. Accueil', 'CTA « Me contacter sur WhatsApp »', $lienWaPresent($accueil) ? 'OK' : 'KO');
 statut('7. Accueil', 'Section présentation rapide', str_contains($accueil, 'domaine') || str_contains($accueil, 'Domaines') ? 'OK' : 'KO');
 statut('7. Accueil', 'Section 4 domaines d\'intervention', count($donnees['domains'] ?? []) === 4 ? 'OK' : 'KO');
 statut('7. Accueil', 'Section raisons de solliciter le formateur', count($donnees['reasons'] ?? []) >= 4 ? 'OK' : 'KO', count($donnees['reasons'] ?? []).' raisons');
@@ -300,7 +315,7 @@ $pagesSansWa = [];
 
 foreach ($pages as $url => $titre) {
     $contenu = $url === '/' ? $accueil : page($frontend.$url);
-    if (! str_contains($contenu, 'wa.me/'.$wa)) {
+    if (! $lienWaPresent($contenu)) {
         $pagesSansWa[] = $titre;
     }
 }

@@ -151,6 +151,68 @@
     </div>
 </section>
 
+{{-- BANDEAU DE CONFIANCE : les organisations clientes.
+     Preuve sociale institutionnelle, distincte des témoignages nominatifs.
+     Masqué tant qu'aucun nom n'est saisi : une liste vide se lirait comme un
+     manque, alors que le silence passe inaperçu. --}}
+@php
+    $clients = \App\Services\SiteContent::linesToArray($s['clients'] ?? '');
+@endphp
+@if (count($clients))
+    <x-marquee-clients :items="array_map(fn ($c) => ['name' => $c], $clients)" titre="Ils me font confiance" />
+@endif
+
+{{-- BANDEAU DE STATISTIQUES
+     Les valeurs par défaut sont appliquées avec ?: et non ?? : le premier
+     replie aussi sur une chaîne vide. Un champ laissé vide par le
+     propriétaire conserve donc la valeur du site au lieu de faire
+     disparaître le libellé ou le chiffre.
+
+     `data-count` ne porte que les chiffres ; le texte final reste dans
+     l'élément, donc les compteurs restent lisibles sans JavaScript et le
+     séparateur de milliers (« 2 000+ ») survit à l'animation. --}}
+@php
+    $statsBandeau = [
+        [$s['stat_1_label'] ?? '', 'Années d\'expérience', $s['stat_1_value'] ?? '', '10+'],
+        [$s['stat_2_label'] ?? '', 'Formations animées', $s['stat_2_value'] ?? '', '120+'],
+        [$s['stat_3_label'] ?? '', 'Professionnels formés', $s['stat_3_value'] ?? '', '2 000+'],
+        [$s['stat_4_label'] ?? '', 'Organisations accompagnées', $s['stat_4_value'] ?? '', '50+'],
+    ];
+@endphp
+<section class="bg-canvas pb-16 sm:pb-20">
+    <div class="container-x">
+        <div class="grid gap-8 rounded-2xl bg-nuit px-6 py-10 text-white sm:px-10 lg:grid-cols-12 lg:items-center lg:gap-10">
+            <dl class="grid grid-cols-2 gap-8 text-center lg:col-span-8 lg:grid-cols-4">
+                @foreach ($statsBandeau as [$libelle, $libelleDefaut, $valeur, $valeurDefaut])
+                    @php
+                        $libelleAffiche = $libelle ?: $libelleDefaut;
+                        $valeurAffichee = $valeur ?: $valeurDefaut;
+                    @endphp
+                    <div>
+                        <dt class="text-sm font-medium text-white/60">{{ $libelleAffiche }}</dt>
+                        <dd class="stat-nombre mt-2"
+                            data-count="{{ preg_replace('/\D+/', '', $valeurAffichee) }}">{{ $valeurAffichee }}</dd>
+                    </div>
+                @endforeach
+            </dl>
+
+            {{-- Les chiffres ne servent à rien sans l'action qui les suit : le
+                 vide à droite est donc occupé par l'appel à l'action. --}}
+            <div class="lg:col-span-4">
+                <p class="text-center text-sm leading-relaxed text-white/70 lg:text-left">
+                    Un premier échange suffit à savoir si mon accompagnement correspond à votre besoin.
+                </p>
+                <x-magnetic-btn :href="route('contact', ['form' => 'formation'])"
+                                variante="light"
+                                icone="arrow-right"
+                                class="mt-5 w-full justify-center lg:w-auto">
+                    Demander une formation
+                </x-magnetic-btn>
+            </div>
+        </div>
+    </div>
+</section>
+
 {{-- PRÉSENTATION RAPIDE (CC §7)
      Une seule section entre le hero et les domaines : qui je suis, ce que
      j'apporte, et la porte vers « À propos ». Pas de photo ici — le hero
