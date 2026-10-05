@@ -48,7 +48,7 @@ switch ($scenario) {
     // Processus 1 : obtention du token
     case 'login':
         [$c, $auth] = call($kernel, 'POST', '/api/v1/auth/login', [
-            'email' => 'geraldoagonse@gmail.com', 'password' => 'Admin@2026',
+            'email' => 'geraldoagonse@gmail.com', 'password' => 'Geraldo@2026',
         ]);
         $token = json_decode($auth, true)['token'] ?? '';
         file_put_contents($tokenFile, $token);

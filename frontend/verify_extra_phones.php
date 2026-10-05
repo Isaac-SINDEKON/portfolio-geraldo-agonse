@@ -90,7 +90,7 @@ preg_match('/name="_token"\s+value="([^"]+)"/', $pageLogin, $mLogin);
 Http::withOptions(['cookies' => $jar])->asForm()->post($frontend.'/admin/login', [
     '_token' => $mLogin[1] ?? '',
     'email' => 'geraldoagonse@gmail.com',
-    'password' => 'Admin@2026',
+    'password' => 'Geraldo@2026',
 ]);
 
 check('Connexion administrateur', str_contains(

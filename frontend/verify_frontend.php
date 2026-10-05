@@ -16,6 +16,7 @@ require __DIR__.'/vendor/autoload.php';
 $app = require_once __DIR__.'/bootstrap/app.php';
 $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 
+use App\Http\Controllers\Admin\SettingsController;
 use GuzzleHttp\Cookie\CookieJar;
 use Illuminate\Support\Facades\Http;
 
@@ -23,7 +24,7 @@ $frontend = rtrim($argv[1] ?? 'http://127.0.0.1:8001', '/');
 $backend = rtrim($argv[2] ?? 'http://127.0.0.1:8000', '/');
 
 $email = 'geraldoagonse@gmail.com';
-$password = 'Admin@2026';
+$password = 'Geraldo@2026';
 
 $pass = 0;
 $fail = 0;
@@ -46,6 +47,14 @@ function check(string $label, bool $ok, string $detail = ''): void
 function section(string $title): void
 {
     echo "\n== $title ==\n";
+}
+
+/** Lit un fichier du projet pour verifier son code source, pas son rendu. */
+function lire(string $chemin): string
+{
+    $absolu = __DIR__.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $chemin);
+
+    return is_file($absolu) ? (string) file_get_contents($absolu) : '';
 }
 
 /* ------------------------------------------------------------------ */
@@ -424,6 +433,69 @@ foreach (array_keys($rubriquesAdmin) as $href) {
 check('Admin : une seule rubrique active par page', $actifsIncorrects === [],
     $actifsIncorrects ? implode(' ; ', $actifsIncorrects) : count($rubriquesAdmin).' pages vérifiées');
 
+// Les boutons « Ajouter » sont rendus dans l'en-tete, donc hors du conteneur
+// Alpine du contenu. Alpine v3 n'initialise que l'interieur d'un [x-data]
+// (addRootSelector dans le bundle Livewire) : un x-on:click place en dehors
+// reste inerte, le clic ne fait rien et le formulaire ne s'ouvre jamais.
+// Chaque bouton doit donc avoir un ancetre portant x-data, et l'evenement
+// qu'il emettre doit etre ecoute sur window par le contenu.
+$boutonsAjout = [
+    '/admin/sections/domains' => 'ouvrir-ajout',
+    '/admin/sections/reasons' => 'ouvrir-ajout',
+    '/admin/sections/services' => 'ouvrir-ajout',
+    '/admin/sections/experiences' => 'ouvrir-ajout',
+    '/admin/formations' => 'ouvrir-formation',
+    '/admin/temoignages' => 'ouvrir-ajout',
+];
+
+function ancetreAvecXData(DOMNode $noeud): bool
+{
+    for ($p = $noeud; $p instanceof DOMElement; $p = $p->parentNode) {
+        if ($p->hasAttribute('x-data')) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+$boutonsCasses = [];
+
+foreach ($boutonsAjout as $chemin => $evenement) {
+    $doc = new DOMDocument();
+    @$doc->loadHTML('<?xml encoding="utf-8" ?>'.Http::withOptions(['cookies' => $jar])->get($frontend.$chemin)->body());
+    $xpath = new DOMXPath($doc);
+
+    // L'espace de noms des attributs Alpine contient « : », que XPath ne sait pas
+    // exprimer dans un predicat : on compare donc sur name().
+    $emetteur = null;
+
+    foreach ($xpath->query('//header//button[@type="button"][@*[name()="x-on:click"]]') as $bouton) {
+        $expression = $bouton->getAttribute('x-on:click');
+
+        if (str_contains($expression, $evenement)) {
+            $emetteur = $bouton;
+        }
+
+        if (! ancetreAvecXData($bouton)) {
+            $boutonsCasses[] = $chemin.' : bouton hors x-data ('.substr(trim($expression), 0, 24).'…)';
+        }
+    }
+
+    if (! $emetteur) {
+        $boutonsCasses[] = $chemin.' : aucun bouton n\'émet « '.$evenement.' »';
+    } elseif (! ancetreAvecXData($emetteur)) {
+        $boutonsCasses[] = $chemin.' : « '.$evenement.' » émis hors de toute portée Alpine';
+    }
+
+    if ($xpath->query('//*[@x-data][@*[name()="x-on:'.$evenement.'.window"]]')->length === 0) {
+        $boutonsCasses[] = $chemin.' : le contenu n\'écoute pas « '.$evenement.' » sur window';
+    }
+}
+
+check('Admin : les boutons « Ajouter » sont dans une portée Alpine', $boutonsCasses === [],
+    $boutonsCasses ? implode(' ; ', $boutonsCasses) : count($boutonsAjout).' pages vérifiées');
+
 // La page « Contenu du site » est un point d'entree : elle doit rendre
 // atteignable chaque section editable (CC §22).
 $hubHtml = Http::withOptions(['cookies' => $jar])->get($frontend.'/admin/contenu')->body();
@@ -517,8 +589,16 @@ check('Ancienne demande sans indicatif : lue comme Bénin', $waSansPays === 'htt
 // Un email cliqué sans client de messagerie doit au moins être visible.
 check('Email : confirmation affichée quand le mailto ne s\'ouvre pas',
     str_contains($html['/contact'], 'toast-email'));
+// La copie passe par window.copierTexte (app.js) : c'est lui qui retombe sur
+// execCommand, donc le lien reste copier-coller même en HTTP sans HTTPS, où
+// navigator.clipboard n'existe pas.
 check('Email : adresse copiée au clic',
-    str_contains($html['/contact'], 'writeText'));
+    str_contains($html['/contact'], 'copierTexte'));
+check('Copie : repli disponible hors contexte sécurisé (HTTP simple)',
+    str_contains(lire('resources/js/app.js'), 'execCommand')
+        && str_contains(lire('resources/js/app.js'), 'isSecureContext'));
+check('Partage : le bouton « copier le lien » utilise le même repli',
+    str_contains(lire('resources/views/components/partage.blade.php'), 'copierTexte'));
 
 // Nettoyage : suppression du témoignage et de la demande de test
 $testimonials = Http::withOptions(['cookies' => $jar])->get($backend.'/api/v1/site')->json()['testimonials'] ?? [];
@@ -968,6 +1048,239 @@ check('Déconnexion', str_contains($logout->body(), 'Vous êtes déconnecté'));
 
 $afterLogout = Http::withOptions(['cookies' => $jar])->get($frontend.'/admin');
 check('Administration protégée après déconnexion', str_contains($afterLogout->body(), 'Espace administration'));
+
+section('8. Thème, menu mobile et formulaires admin');
+
+/* La palette d'accent bascule avec le theme (.dark redefinit --p-*), donc une
+   classe comme bg-primary-50 + text-primary-800 s'estreint en sombre : les deux
+   moities du texte tombaient du cote obscur. On verifie qu'il ne reste plus de
+   paire coulleur claire / encre foncee en dur dans l'admin. */
+$cssAdmin = lire('resources/css/app.css');
+$vuesAdmin = [
+    'resources/views/components/admin-nav.blade.php',
+    'resources/views/layouts/admin.blade.php',
+];
+foreach (glob(__DIR__.'/resources/views/admin/*.blade.php') ?: [] as $vue) {
+    $vuesAdmin[] = str_replace(__DIR__.'/', '', $vue);
+}
+
+$pairesInterdites = ['bg-primary-50', 'bg-red-50', 'bg-green-50', 'text-red-800', 'text-green-800', 'border-red-200', 'border-green-200'];
+$residusPaires = [];
+foreach ($vuesAdmin as $vue) {
+    $contenu = lire($vue);
+    foreach ($pairesInterdites as $classe) {
+        if (str_contains($contenu, $classe)) {
+            $residusPaires[] = $vue.' ('.$classe.')';
+        }
+    }
+}
+check('Admin : plus aucun aplat clair associé à une encre foncée en dur', $residusPaires === [],
+$residusPaires ? implode(', ', $residusPaires) : count($vuesAdmin).' vues inspectées');
+
+// Les jetons de ces memes aplats doivent exister et basculer avec le theme.
+$jetonsTheme = ['--p-soft', '--p-soft-ink', '--ok-fond', '--alerte-fond', '--color-primary-soft', '--color-alert-bg'];
+$jetonsManquants = array_values(array_filter($jetonsTheme, fn ($j) => ! str_contains($cssAdmin, $j)));
+check('Thème : jetons de contraste clair/sombre déclarés', $jetonsManquants === [],
+$jetonsManquants ? 'manquant : '.implode(', ', $jetonsManquants) : count($jetonsTheme).' jetons');
+
+/* Le controle du bloc `.dark` et de la geometrie des menus est fait en section 9,
+   sur le vrai bloc CSS et sur les deux panneaux compares. On ne le repete pas ici
+   sous une forme plus faible. */
+$nav = lire('resources/views/components/admin-nav.blade.php');
+check('Menu admin : lignes compactes et panneau défilable',
+str_contains($nav, 'rounded-lg px-2.5 py-1.5 text-[0.8125rem]') && str_contains($nav, 'overscroll-contain'));
+check('Menu admin : ligne active lisible en thème sombre',
+str_contains($nav, 'bg-primary-soft font-semibold text-primary-soft-ink'));
+
+/* La section « Identité visuelle » ne portait que brand_color et brand_accent,
+   deux curseurs sans effet (la palette publique est fixee par app.css), plus le
+   champ clients. Les curseurs ont disparu du formulaire et clients a son propre
+   groupe : la bande de confiance reste donc configurable. */
+$champs = SettingsController::fields();
+$groupes = array_values(array_unique(array_column($champs, 'group')));
+check('Réglages : la section « Identité visuelle » a disparu',
+! in_array('Identité visuelle', $groupes, true), implode(' | ', $groupes));
+check('Réglages : les curseurs de couleur inactifs ne sont plus exposés',
+! array_key_exists('brand_color', $champs) && ! array_key_exists('brand_accent', $champs));
+check('Réglages : le bandeau clients reste configurable',
+($champs['clients']['group'] ?? null) === 'Bandeau clients');
+
+section('9. Encre des aplats sombres et menu public');
+
+/* Les commentaires Blade citent souvent les classes qu'ils remplacent : les
+   garder dans la chaine ferait echouer la garde sur son propre texte. */
+$sansCommentaires = fn (string $s): string => (string) preg_replace('/\{\{--.*?--\}\}/s', '', $s);
+
+$blocSombre = '';
+if (preg_match('/\.dark\s*\{(.*?)\}/s', $cssAdmin, $m)) {
+    $blocSombre = $m[1];
+}
+
+/* `--nuit` reste sombre dans les deux themes, donc l'encre posee dessus doit
+   rester claire. La rampe d'accent, elle, s'inverse : `--p-100` et `--p-200`
+   sont des voiles clairs en theme clair mais virent au noir en theme sombre, ou
+   ils disparaissent sur le navy des heros. Les jetons `on-nuit` sont calcules en
+   melangeant l'accent avec du blanc, donc jamais sombres. */
+$jetonsOnNuit = ['--on-nuit-doux', '--on-nuit-vif'];
+$jetonsOnNuitManquants = array_values(array_filter($jetonsOnNuit, fn ($j) => ! str_contains($cssAdmin, $j)));
+check('Aplats sombres : jetons d’encre claire déclarés', $jetonsOnNuitManquants === [],
+$jetonsOnNuitManquants ? 'manquant : '.implode(', ', $jetonsOnNuitManquants) : implode(' / ', $jetonsOnNuit));
+
+// Ils ne doivent surtout pas etre reaffiches dans `.dark` : ils dependent de
+// `--accent-base`, qui bascule deja tout seul.
+$redefines = array_values(array_filter($jetonsOnNuit, fn ($j) => str_contains($blocSombre, $j.':')));
+check('Aplats sombres : jetons non redéfinis en mode sombre (ils suivent l’accent)', $redefines === [],
+$redefines ? 'redéfini dans .dark : '.implode(', ', $redefines) : 'dérivation automatique conservée');
+
+// Garde de la section 8, refaite sur le vrai bloc `.dark` cette fois.
+check('Thème : les jetons de contraste sont bien redéfinis en mode sombre',
+str_contains($blocSombre, '--p-soft-ink') && str_contains($blocSombre, '--alerte-ink'));
+
+/* La verite terrain : aucune section dont le FOND est `bg-nuit` ne doit utiliser
+   une encre qui suit le theme. Le fond se lit sur la seule balise d'ouverture :
+   une page melange souvent un hero sombre et des sections claires, et `bg-nuit`
+   peut apparaitre sur un simple bouton ou en `hover:` sans que la section soit
+   sombre. D'ou les deux surveillances : ni prefixe (`hover:`), ni variante
+   d'opacite (`bg-nuit/10`). */
+$encreDeTheme = ['text-primary-50', 'text-primary-100', 'text-primary-200', 'text-primary-300', 'text-ink', 'text-muted'];
+$residusNuit = [];
+$sectionsSombres = 0;
+$sectionsLues = 0;
+$vuesSite = [];
+$racine = str_replace('\\', '/', __DIR__.'/');
+$iterateur = new RecursiveIteratorIterator(
+    new RecursiveDirectoryIterator(__DIR__.'/resources/views/site', FilesystemIterator::SKIP_DOTS)
+);
+foreach ($iterateur as $fichier) {
+    if ($fichier->isFile() && $fichier->getExtension() === 'php') {
+        // Chemin relatif a la racine du frontend : `lire()` attend cette forme,
+        // et silently renvoie une chaine vide si le fichier n'est pas trouve.
+        $vuesSite[] = str_replace($racine, '', str_replace('\\', '/', $fichier->getPathname()));
+    }
+}
+foreach ($vuesSite as $vue) {
+    $nom = basename($vue);
+    $contenu = $sansCommentaires(lire($vue));
+    if ($contenu !== '') {
+        $sectionsLues++;
+    }
+
+    preg_match_all('/<section\b([^>]*)>(.*?)<\/section>/s', $contenu, $sections, PREG_SET_ORDER);
+    foreach ($sections as $index => $section) {
+        if (! preg_match('/(?<![\w-])bg-nuit(?![\w\/-])/', $section[1])) {
+            continue;
+        }
+        $sectionsSombres++;
+        foreach ($encreDeTheme as $classe) {
+            if (preg_match('/(?<![\w-])'.preg_quote($classe, '/').'(?![\w-])/', $section[2])) {
+                $residusNuit[] = $nom.' #'.($index + 1).' ('.$classe.')';
+            }
+        }
+    }
+}
+/* `lire()` renvoie une chaine vide quand un chemin ne resout pas : sans ce
+   controle, une erreur de chemin ferait passer la garde dans le vide. Idem si le
+   nombre de sections sombres tombe a zero, la garde ne testerait plus rien. */
+check('Sections `bg-nuit` : les vues sont bien toutes relues',
+count($vuesSite) >= 8 && $sectionsLues === count($vuesSite),
+count($vuesSite).' vues, '.$sectionsLues.' relues');
+
+check('Sections `bg-nuit` : aucune encre de thème posée dessus',
+$residusNuit === [] && $sectionsSombres > 0,
+$residusNuit ? implode(', ', $residusNuit) : $sectionsSombres.' sections sombres inspectées');
+
+$bandeau = $sansCommentaires(lire('resources/views/components/marquee-clients.blade.php'));
+check('Bandeau clients : le texte ne suit plus les jetons du thème',
+! str_contains($bandeau, 'text-ink') && ! str_contains($bandeau, 'text-muted')
+&& str_contains($bandeau, 'text-on-nuit-doux'));
+
+/* Le panneau public a deux presentations : une carte bornee sur telephone, et le
+   modal editorial a partir de `sm:`. Le garde verifie que la version compacte
+   existe ET que le mobilier editorial lui reste bien reserve. */
+$entete = $sansCommentaires(lire('resources/views/components/site-header.blade.php'));
+$navAdmin = $sansCommentaires(lire('resources/views/components/admin-nav.blade.php'));
+/* Un seul menu, presents partout : plus de version mobile / version `sm:`. Le
+   controle porte sur l'attribut `class` du panneau, pas sur le fichier : `inset-x`
+   apparait ailleurs (soulignement de la nav desktop) et ferait echouer une simple
+   recherche de sous-chaine. */
+$classesPanneau = '';
+if (preg_match('/<nav id="menu-principal"(.*?)>/s', $entete, $m)) {
+    // `(?<![:\w-])` : le panneau porte aussi un `:class` dynamique, et `class="`
+    // seul matcherait cet attribut-la en premier.
+    if (preg_match('/(?<![:\w-])class="([^"]*)"/s', $m[1], $c)) {
+        $classesPanneau = $c[1];
+    }
+}
+check('Menu public : carte étroite ancrée en haut à droite',
+str_contains($classesPanneau, 'right-3')
+&& str_contains($classesPanneau, 'w-[min(20rem,calc(100vw-1.5rem))]')
+&& str_contains($classesPanneau, 'max-h-[calc(100dvh-6rem)]')
+&& str_contains($classesPanneau, 'rounded-2xl border border-line p-2'));
+
+// Une seule presentation : la geometrie ne doit porter aucun `sm:`. Le seul
+// decalage vertical legitime est celui de la barre haute, qui disparait en `lg:`.
+$geometrie = preg_replace('/\s(?:lg|xl):[^\s]+/', '', $classesPanneau) ?? '';
+check('Menu public : une seule présentation, aucune largeur par palier',
+! str_contains($geometrie, 'sm:')
+&& ! str_contains($geometrie, 'inset-x-')
+&& ! str_contains($geometrie, 'w-full')
+&& ! str_contains($geometrie, 'w-screen'));
+check('Menu public : lignes compactes',
+str_contains($entete, 'rounded-lg px-2.5 py-1.5 text-[0.8125rem]'));
+check('Menu public : l’ancien modal éditorial a bien disparu',
+! str_contains($entete, 'font-serif text-4xl')
+&& ! str_contains($entete, 'sm:hidden')
+&& ! str_contains($entete, 'menu-modal__fond')
+&& ! str_contains($entete, 'lien-modal'));
+
+/* Les deux menus doivent avoir la meme geometrie, sinon « le meme partout » ne
+   veut rien dire. On compare les deux attributs, token par token. */
+$classesAdmin = '';
+if (preg_match('/<nav id="menu-admin"(.*?)>/s', $navAdmin, $m)) {
+    if (preg_match('/(?<![:\w-])class="([^"]*)"/s', $m[1], $c)) {
+        $classesAdmin = $c[1];
+    }
+}
+$commun = ['w-[min(20rem,calc(100vw-1.5rem))]', 'max-h-[calc(100dvh-6rem)]', 'right-3',
+    'origin-top-right', 'rounded-2xl border border-line p-2', 'shadow-lift'];
+$divergences = array_values(array_filter($commun, fn ($t) => ! str_contains($classesPanneau, $t) || ! str_contains($classesAdmin, $t)));
+check('Menu public et menu admin : géométrie identique',
+$classesPanneau !== '' && $classesAdmin !== '' && $divergences === [],
+$divergences ? 'divergent : '.implode(', ', $divergences) : count($commun).' tokens partagés');
+
+/* Le fond de la carte est pose dans `.menu-modal` et non via une utilitaire
+   Tailwind : les deux seraient sur le meme element, or `.menu-modal` est emise
+   apres la couche des utilitaires et l'ecraserait. */
+check('Menu : fond posé par `.menu-modal`, hors cascade utilitaire',
+preg_match('/\.menu-modal\s*\{\s*background-color:\s*var\(--surface\)/', $cssAdmin) === 1
+&& ! str_contains($cssAdmin, '@media (width < 40rem)'));
+check('Menu : CSS du modal éditorial supprimé',
+! str_contains($cssAdmin, 'lien-modal') && ! str_contains($cssAdmin, 'menu-modal__fond'));
+
+/* `truncate` ne tronque rien sur un element flex : `min-width: auto` l'emporte sur
+   la largeur nulle demandee par `flex-1`, et la ligne depasse le panneau. Comme
+   le panneau declare `overflow-y: auto` sans `overflow-x`, le navigateur fait
+   alors defiler l'axe horizontal aussi — une barre de defilement en bas. */
+check('Menu : les libellés peuvent rétrécir au lieu d’élargir la carte',
+substr_count($entete, 'min-w-0 flex-1 truncate') >= 1
+&& substr_count($navAdmin, 'min-w-0 flex-1 truncate') >= 1
+&& ! preg_match('/class="(?![^"]*min-w-0)[^"]*\bflex-1 truncate\b/', $entete)
+&& ! preg_match('/class="(?![^"]*min-w-0)[^"]*\bflex-1 truncate\b/', $navAdmin));
+check('Menu : aucun débordement horizontal dans les cartes',
+substr_count($entete, 'overflow-x-hidden overflow-y-auto') >= 1
+&& substr_count($navAdmin, 'overflow-x-hidden overflow-y-auto') >= 1);
+
+/* Un debordement horizontal isole ne doit pas creer de barre de defilement en
+   bas. `clip` est exige plutot que `hidden` : `hidden` ferait de la racine un
+   conteneur de defilement et casserait les `position: sticky` du site. */
+check('Page : pas de barre de défilement horizontale',
+preg_match('/html\s*\{[^}]*overflow-x:\s*clip/s', $cssAdmin) === 1
+&& ! preg_match('/html\s*\{[^}]*overflow-x:\s*hidden/s', $cssAdmin));
+
+/* Meme piege dans la barre laterale de l'admin : son `<nav>` defile en hauteur,
+   donc un libelle trop long y ajoute une barre horizontale. */
+check('Barre latérale admin : libellés tronquables',
+preg_match('/<span class="min-w-0 truncate">\{\{ \$entree\[.label.\] \}\}<\/span>/', $navAdmin) === 1);
 
 /* ------------------------------------------------------------------ */
 printf("\n%s\n", str_repeat('-', 60));

@@ -54,7 +54,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'geraldoagonse@gmail.com'],
             [
                 'name' => 'Géraldo Perridys AGONSE',
-                'password' => 'Admin@2026',
+                'password' => 'Geraldo@2026',
                 'is_admin' => true,
             ]
         );

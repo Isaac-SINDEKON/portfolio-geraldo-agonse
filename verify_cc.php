@@ -89,7 +89,7 @@ if (! $siteEnLigne) {
     exit(1);
 }
 
-$motDePasseAdmin = 'Admin@2026';
+$motDePasseAdmin = 'Geraldo@2026';
 preg_match('/<article class="card">.*?<\/article>/s', $temoignages, $avisArticle);
 
 // ---------------------------------------------------------------- 1 a 37

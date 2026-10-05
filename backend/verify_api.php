@@ -190,7 +190,7 @@ check('CC §25 - rate limiting actif (429 apres 5 envois/min)', in_array(429, $c
 // 8. Auth admin
 [$c, $auth] = call($kernel, 'POST', '/api/v1/auth/login', [
     'email' => 'geraldoagonse@gmail.com',
-    'password' => 'Admin@2026',
+    'password' => 'Geraldo@2026',
 ]);
 check('POST /api/v1/auth/login (identifiants corrects)', $c, 200, '');
 $token = $auth['token'] ?? null;
