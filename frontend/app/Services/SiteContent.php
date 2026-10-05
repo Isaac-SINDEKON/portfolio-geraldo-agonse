@@ -213,7 +213,7 @@ class SiteContent
         $subject = 'Demande de formation / devis — ' . ($this->setting('name') ?? 'Géraldo Perridys AGONSE');
         $body = "Bonjour,\n\nJe souhaite vous contacter pour :\n- Une formation\n- Un devis sur mesure\n\nMerci de me recontacter à votre convenance.\n\nCordialement,";
 
-        return 'mailto:'.$email.'?subject='.urlencode($subject).'&body='.urlencode($body);
+        return 'mailto:'.$email.'?subject='.rawurlencode($subject).'&body='.rawurlencode($body);
     }
 
     /**
