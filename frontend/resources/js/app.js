@@ -779,11 +779,17 @@ function repliExecCommand(texte) {
 // ---------------------------------------------------------------------------
 // Sur desktop sans client par defaut (Windows sans Outlook/Mail), le mailto:
 // ne fait rien. Ce gestionnaire tente l'ouverture native, attend 800 ms, et
-// si la page est encore visible/focussee, redirige vers Gmail web.
-// L'utilisateur peut choisir Outlook.com en changeant la constante WEBMAIL_URL.
+// si la page est encore visible/focussee, propose Gmail ET Outlook.com.
 (function gererLiensMail() {
-    const WEBMAIL_URL = 'https://mail.google.com/mail/?to={email}&su={subject}&body={body}';
-    // const WEBMAIL_URL = 'https://outlook.live.com/mail/0/deeplink/compose?to={email}&subject={subject}&body={body}';
+    const GMAIL_URL = 'https://mail.google.com/mail/?to={email}&su={subject}&body={body}';
+    const OUTLOOK_URL = 'https://outlook.live.com/mail/0/deeplink/compose?to={email}&subject={subject}&body={body}';
+
+    function ouvrirWebmail(modele, email, subject, body) {
+        return modele
+            .replace('{email}', encodeURIComponent(email))
+            .replace('{subject}', encodeURIComponent(subject))
+            .replace('{body}', encodeURIComponent(body));
+    }
 
     document.addEventListener('click', function (evenement) {
         const lien = evenement.target.closest('a[href^="mailto:"]');
@@ -808,11 +814,22 @@ function repliExecCommand(texte) {
                 const email = url.pathname;
                 const subject = url.searchParams.get('subject') || '';
                 const body = url.searchParams.get('body') || '';
-                const webmail = WEBMAIL_URL
-                    .replace('{email}', encodeURIComponent(email))
-                    .replace('{subject}', encodeURIComponent(subject))
-                    .replace('{body}', encodeURIComponent(body));
-                window.open(webmail, '_blank', 'noopener,noreferrer');
+
+                const gmail = ouvrirWebmail(GMAIL_URL, email, subject, body);
+                const outlook = ouvrirWebmail(OUTLOOK_URL, email, subject, body);
+
+                // Affiche un toast avec les deux choix
+                if (typeof window.montrer === 'function') {
+                    window.montrer(
+                        'Aucun client mail detecte. Choisissez : ' +
+                        '<a href="' + gmail + '" target="_blank" rel="noopener noreferrer" class="underline text-primary-600 hover:text-primary-400 mr-3">Gmail</a>' +
+                        '<a href="' + outlook + '" target="_blank" rel="noopener noreferrer" class="underline text-primary-600 hover:text-primary-400">Outlook.com</a>',
+                        true
+                    );
+                } else {
+                    // Fallback si le toast n'est pas dispo : ouvre Gmail par defaut
+                    window.open(gmail, '_blank', 'noopener,noreferrer');
+                }
             }
         }, 800);
     });
