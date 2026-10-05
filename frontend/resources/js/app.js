@@ -775,6 +775,50 @@ function repliExecCommand(texte) {
 }
 
 // ---------------------------------------------------------------------------
+// Lien mail : fallback webmail si aucun client mail n'est configure
+// ---------------------------------------------------------------------------
+// Sur desktop sans client par defaut (Windows sans Outlook/Mail), le mailto:
+// ne fait rien. Ce gestionnaire tente l'ouverture native, attend 800 ms, et
+// si la page est encore visible/focussee, redirige vers Gmail web.
+// L'utilisateur peut choisir Outlook.com en changeant la constante WEBMAIL_URL.
+(function gererLiensMail() {
+    const WEBMAIL_URL = 'https://mail.google.com/mail/?to={email}&su={subject}&body={body}';
+    // const WEBMAIL_URL = 'https://outlook.live.com/mail/0/deeplink/compose?to={email}&subject={subject}&body={body}';
+
+    document.addEventListener('click', function (evenement) {
+        const lien = evenement.target.closest('a[href^="mailto:"]');
+
+        if (!lien) {
+            return;
+        }
+
+        const href = lien.getAttribute('href');
+        const url = new URL(href, window.location.origin);
+
+        // Tente l'ouverture native
+        const ouvert = window.open(href, '_blank');
+
+        // Si window.open renvoie null (bloqueur popup) ou si la page reste
+        // active apres un delai, le client mail n'a pas pris la main.
+        setTimeout(function () {
+            const pageActive = !document.hidden && document.hasFocus();
+            const pasDePopup = !ouvert || ouvert.closed || typeof ouvert.closed === 'undefined';
+
+            if (pageActive && pasDePopup) {
+                const email = url.pathname;
+                const subject = url.searchParams.get('subject') || '';
+                const body = url.searchParams.get('body') || '';
+                const webmail = WEBMAIL_URL
+                    .replace('{email}', encodeURIComponent(email))
+                    .replace('{subject}', encodeURIComponent(subject))
+                    .replace('{body}', encodeURIComponent(body));
+                window.open(webmail, '_blank', 'noopener,noreferrer');
+            }
+        }, 800);
+    });
+})();
+
+// ---------------------------------------------------------------------------
 // Etats de soumission
 // ---------------------------------------------------------------------------
 // L'administration est en Blade classique : une action POST recharge la page,
