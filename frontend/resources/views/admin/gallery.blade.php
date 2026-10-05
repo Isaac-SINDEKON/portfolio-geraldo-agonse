@@ -50,20 +50,29 @@
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('admin.gallery.update', $image['id']) }}" class="mt-4 space-y-3">
+                <form method="POST" action="{{ route('admin.gallery.update', $image['id']) }}" class="mt-4 space-y-3"
+                      enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
 
+                    <p class="text-xs font-medium text-muted">Remplacer la photo <span class="text-muted">(facultatif)</span></p>
+
+                    <input type="file" id="image-{{ $image['id'] }}" name="image"
+                           accept="image/jpeg,image/png,image/webp"
+                           class="field py-1.5 text-xs">
+                    <p class="text-xs text-muted">Laissez vide pour conserver la photo actuelle.</p>
+
                     <div>
                         <label for="caption-{{ $image['id'] }}" class="field-label">Légende</label>
-                        <input type="text" id="caption-{{ $image['id'] }}" name="caption"
-                               value="{{ old('caption', $image['caption'] ?? '') }}" class="field">
+                        <input type="text" id="caption-{{ $image['id'] }}" name="caption[{{ $image['id'] }}]"
+                               value="{{ old('caption.'.$image['id'], $image['caption'] ?? '') }}" class="field">
+                        @error('caption.'.$image['id']) <p class="field-message">{{ $message }}</p> @enderror
                     </div>
 
                     <div>
                         <label for="order-{{ $image['id'] }}" class="field-label">Ordre</label>
-                        <input type="number" id="order-{{ $image['id'] }}" name="sort_order"
-                               value="{{ old('sort_order', $image['sort_order'] ?? '') }}" class="field">
+                        <input type="number" id="order-{{ $image['id'] }}" name="sort_order[{{ $image['id'] }}]"
+                               value="{{ old('sort_order.'.$image['id'], $image['sort_order'] ?? '') }}" class="field">
                     </div>
 
                     <button type="submit" class="btn-outline px-3 py-2 text-xs">Enregistrer</button>

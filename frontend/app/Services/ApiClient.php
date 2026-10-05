@@ -99,10 +99,16 @@ class ApiClient
         return $this->handle($response, $endpoint);
     }
 
-    /**
+/**
      * Envoi d'un fichier (upload d'images depuis l'administration).
      * Le fichier est lu sur le disque temporaire puis renvoye en multipart
      * vers l'API backend, qui le stocke dans storage/app/public/uploads.
+     *
+     * Les champs accompagnant le fichier partent dans le meme corps multipart :
+     * ils sont passes a l'appel HTTP, et non empiles via post(), qui aurait
+     * declenche une requete supplementaire vers la cle du champ.
+     *
+     * @param  array<string, mixed>  $extra  champs accompagnant le fichier
      */
     public function upload(string $endpoint, UploadedFile $file, string $field = 'image', array $extra = []): ?array
     {
@@ -121,11 +127,9 @@ class ApiClient
                 $file->getClientOriginalName()
             );
 
-            foreach ($extra as $key => $value) {
-                $request = $request->post($key, $value);
-            }
+            $endpoint = ltrim($endpoint, '/');
 
-            $response = $request->post(ltrim($endpoint, '/'));
+            $response = $request->post($endpoint, $extra);
         } catch (\Throwable $e) {
             Log::error('API UPLOAD '.$endpoint.' : '.$e->getMessage());
 

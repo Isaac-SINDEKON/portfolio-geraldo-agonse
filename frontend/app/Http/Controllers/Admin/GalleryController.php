@@ -49,15 +49,35 @@ class GalleryController extends AdminController
 
     public function update(Request $request, int $id): RedirectResponse
     {
+        // Les formulaires de modification sont nommes par identifiant
+        // (caption[12]) : la valeur saisie appartient a une seule image et ne
+        // se retrouve pas dans les autres cartes apres une erreur de validation.
         $request->validate([
-            'caption' => ['nullable', 'string', 'max:255'],
-            'sort_order' => ['nullable', 'integer'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:5120'],
+            'caption.'.$id => ['nullable', 'string', 'max:255'],
+            'sort_order.'.$id => ['nullable', 'integer'],
+        ], [
+            'image.max' => 'L\'image ne doit pas dépasser 5 Mo.',
         ]);
 
-        if ($this->api->put("admin/gallery/{$id}", [
-            'caption' => $request->input('caption'),
-            'sort_order' => $request->input('sort_order'),
-        ]) === null) {
+        $payload = [
+            'caption' => $request->input('caption.'.$id),
+            'sort_order' => $request->input('sort_order.'.$id),
+        ];
+
+        // Le fichier n'est renvoye que pour un remplacement : sans lui, la photo
+        // courante est conservee (le backend ne touche pas au fichier existant).
+        if ($request->hasFile('image')) {
+            $upload = $this->api->upload('admin/upload', $request->file('image'), 'image');
+
+            if ($upload === null || empty($upload['path'])) {
+                return $this->fail('Le téléversement de l\'image a échoué.');
+            }
+
+            $payload['image_path'] = $upload['path'];
+        }
+
+        if ($this->api->put("admin/gallery/{$id}", $payload) === null) {
             return $this->fail('Impossible de mettre à jour cette image.');
         }
 

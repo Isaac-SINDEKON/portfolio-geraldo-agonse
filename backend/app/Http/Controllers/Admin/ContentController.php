@@ -40,7 +40,7 @@ class ContentController extends Controller
             'sort_order' => 'nullable|integer',
             'active' => 'nullable|boolean',
         ],
-        'gallery' => ['image_path' => 'required|string', 'caption' => 'nullable|string', 'sort_order' => 'nullable|integer'],
+        'gallery' => ['image_path' => 'required|string|max:255', 'caption' => 'nullable|string|max:255', 'sort_order' => 'nullable|integer'],
     ];
 
     public function index(string $resource): JsonResponse
@@ -79,7 +79,17 @@ class ContentController extends Controller
         $data = $this->validatePayload($request, $resource);
         $model = $this->models[$resource];
         $item = $model::findOrFail($id);
+
+        $previous = $resource === 'gallery' ? $item->image_path : null;
+
         $item->update($data);
+
+        // Le fichier remplace n'est supprime qu'apres l'ecriture en base : si la
+        // ligne est rejetee, l'ancienne photo reste la seule reference valide.
+        if ($resource === 'gallery' && array_key_exists('image_path', $data)
+            && $previous !== $data['image_path']) {
+            $this->forgetStoredFile($previous);
+        }
 
         return response()->json($item);
     }
@@ -89,16 +99,34 @@ class ContentController extends Controller
         $model = $this->models[$resource];
         $item = $model::findOrFail($id);
 
-        if ($resource === 'gallery' && $item->image_path) {
-            $full = storage_path('app/public/' . $item->image_path);
-            if (is_file($full)) {
-                @unlink($full);
-            }
+        if ($resource === 'gallery') {
+            $this->forgetStoredFile($item->image_path);
         }
 
         $item->delete();
 
         return response()->json(['message' => 'Supprimé.']);
+    }
+
+    /**
+     * Efface un fichier stocke par UploadController.
+     *
+     * Seuls les fichiers du dossier de stockage sont vises : une valeur vide
+     * est ignoree, et une URL externe n'est jamais touchee.
+     */
+    protected function forgetStoredFile(?string $path): void
+    {
+        $path = trim((string) $path);
+
+        if ($path === '' || preg_match('#^[a-z][a-z0-9+.-]*://#i', $path)) {
+            return;
+        }
+
+        $full = storage_path('app/public/'.ltrim($path, '/'));
+
+        if (is_file($full)) {
+            @unlink($full);
+        }
     }
 
     public function updateSettings(Request $request): JsonResponse
@@ -208,6 +236,15 @@ class ContentController extends Controller
 
         if (($resource === 'formations') && $request->route('id')) {
             $rules['slug'] = ['nullable', 'string', Rule::unique('formations')->ignore($request->route('id'))];
+        }
+
+        // La photo d'une image de galerie n'est envoyee que lorsqu'elle est
+        // remplacee. La garder 'required' en modification faisait echouer toute
+        // correction de legende ou d'ordre (422) et interdisait de changer le
+        // fichier. 'sometimes' laisse la colonne NOT NULL intacte quand aucun
+        // nouvel envoi n'est fourni.
+        if (($resource === 'gallery') && $request->route('id')) {
+            $rules['image_path'] = ['sometimes', 'required', 'string', 'max:255'];
         }
 
         $data = $request->validate($rules);
