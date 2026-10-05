@@ -23,14 +23,14 @@
             <div class="mt-6 rounded-2xl border border-line-soft bg-white p-6">
 
             @if (session('success'))
-                <div class="mb-5 flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 p-4 text-sm font-medium text-green-800" role="status">
+                <div class="alerte alerte-succes mb-5 flex items-start gap-3 text-sm font-medium" role="status">
                     <x-icon name="check" class="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
                     <p>{{ session('success') }}</p>
                 </div>
             @endif
 
             @if (session('error'))
-                <div class="mb-5 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-800" role="alert">
+                <div class="alerte alerte-erreur mb-5 flex items-start gap-3 text-sm font-medium" role="alert">
                     <x-icon name="alert" class="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
                     <p>{{ session('error') }}</p>
                 </div>

@@ -181,12 +181,12 @@ class SettingsController extends AdminController
     public static function fields(): array
     {
         return [
-            // Identité visuelle : les deux couleurs sont conservées comme
-            // référence de marque. La palette affichée par la maquette publique
-            // est définie dans app.css (indigo / or).
-            'brand_color' => ['label' => 'Couleur de la plateforme', 'type' => 'color', 'group' => 'Identité visuelle', 'hint' => 'Couleur de référence enregistrée avec la marque. La maquette publique affiche l\'indigo en thème clair et l\'or en thème sombre.'],
-            'brand_accent' => ['label' => 'Couleur d\'accentuation', 'type' => 'color', 'group' => 'Identité visuelle', 'hint' => 'Teinte secondaire de référence. Elle ne recolore plus le site public, dont la palette est fixée par la maquette.'],
-            'clients' => ['label' => 'Organisations clientes (une par ligne)', 'type' => 'textarea', 'group' => 'Identité visuelle', 'hint' => 'Affichées dans le bandeau de confiance sous l\'accueil. Laissez vide pour masquer le bandeau.'],
+            // Bandeau de confiance affiche sous l'accueil. La section
+            // « Identite visuelle » qui portait aussi brand_color et
+            // brand_accent a ete retiree : ces deux curseurs ne recoloraient
+            // plus rien (la palette publique est fixee par app.css), donc ils
+            // n'etaient que du bruit dans le formulaire.
+            'clients' => ['label' => 'Organisations clientes (une par ligne)', 'type' => 'textarea', 'group' => 'Bandeau clients', 'hint' => 'Affichées dans le bandeau de confiance sous l\'accueil. Laissez vide pour masquer le bandeau.'],
 
             // Identite
             'name' => ['label' => 'Nom complet', 'type' => 'text', 'required' => true, 'group' => 'Identité'],

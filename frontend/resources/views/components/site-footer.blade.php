@@ -149,7 +149,7 @@
             <a href="{{ route('admin.login') }}"
                title="Espace administration"
                aria-label="Espace administration"
-               class="group flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 text-[11px] text-slate-500 transition hover:border-primary-500 hover:text-primary-300">
+               class="group flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 text-[11px] text-slate-500 transition hover:border-primary-500 hover:text-primary-400">
                 <span class="h-1.5 w-1.5 rounded-full bg-slate-600 transition group-hover:bg-primary-400"></span>
                 Administration
             </a>

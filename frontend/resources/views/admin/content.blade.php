@@ -73,8 +73,8 @@
     {{-- Coordonnées : mise en avant car elle porte le numéro WhatsApp et les
          numéros de téléphone visibles par les visiteurs. --}}
     <a href="{{ route('admin.settings.edit') }}"
-       class="group mt-6 flex flex-col gap-4 rounded-2xl border border-primary-200 bg-primary-50/60 p-5 transition hover:border-primary-400 hover:bg-primary-50 sm:flex-row sm:items-center">
-        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary-600 text-white">
+       class="group mt-6 flex flex-col gap-4 rounded-2xl border border-primary-100 bg-primary-soft p-5 transition hover:border-primary-300 hover:bg-primary-100 sm:flex-row sm:items-center">
+        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary-600 text-on-brand">
             <x-icon name="settings" class="h-6 w-6" />
         </span>
 
@@ -99,7 +99,7 @@
                class="group flex flex-col rounded-2xl border border-line bg-surface p-5 shadow-soft transition hover:-translate-y-0.5 hover:border-primary-300 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
 
                 <div class="flex items-start justify-between gap-3">
-                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-700 transition group-hover:bg-primary-600 group-hover:text-white">
+                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary-soft-ink transition group-hover:bg-primary-600 group-hover:text-on-brand">
                         <x-icon :name="$section['icone']" class="h-5 w-5" />
                     </span>
 

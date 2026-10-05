@@ -20,7 +20,7 @@
                 align="gauche"
                 eyebrow="Contact"
                 title="Parlons de vos besoins en formation"
-                text="{{ $site['settings']['role'] ?? 'Formateur' }} professionnel au Bénin et au Togo. Décrivez votre besoin : je vous réponds avec une proposition adaptée." />
+                :text="($site['settings']['role'] ?? 'Formateur').' professionnel au Bénin et au Togo. Décrivez votre besoin : je vous réponds avec une proposition adaptée.'" />
         </div>
     </section>
 

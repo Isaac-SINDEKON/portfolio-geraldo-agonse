@@ -66,6 +66,27 @@
     --on-brand: #ffffff;
     --shadow-tint: 15 23 42;
 
+    /* Aplat d'accent « discret » : fond de la ligne active, pastille d'icone.
+       En clair c'est un voile d'indigo sur du blanc ; en sombre, l'accent est
+       l'or, donc la meme formule sur du noir donnerait un texte illisible.
+       D'ou deux jetons au lieu d'un : le fond et l'encre se choisissent
+       ensemble, ils ne peuvent pas diverger. */
+    --p-soft: color-mix(in oklab, var(--accent-base) 9%, white);
+    --p-soft-ink: var(--p-800);
+    --p-ring: color-mix(in oklab, var(--accent-base) 24%, transparent);
+
+    /* Etats : succes et erreur. Meme raison que ci-dessus, un rouge pastel
+       pose sur un fond sombre se lit comme une tache claire. */
+    --ok-fond: #ecfdf5;
+    --ok-ink: #065f46;
+    --ok-line: #a7f3d0;
+    --ok-fort: #047857;
+
+    --alerte-fond: #fef2f2;
+    --alerte-ink: #991b1b;
+    --alerte-line: #fecaca;
+    --alerte-fort: #b91c1c;
+
     /* Rampe indigo : mélanges avec du blanc, puis avec du noir. */
     --p-50: color-mix(in oklab, var(--accent-base) 6%, white);
     --p-100: color-mix(in oklab, var(--accent-base) 12%, white);
@@ -83,6 +104,16 @@
     --p-hover: var(--p-700);
 
     --halo: color-mix(in oklab, var(--accent-base) 16%, transparent);
+
+    /* Encre des aplats sombres. `--nuit` reste sombre dans les deux themes,
+       donc tout ce qui est pose dessus doit rester clair. Or la rampe
+       d'accent s'inverse en theme sombre : `--p-100` et `--p-200` y virent au
+       noir et disparaissent sur le navy des heros, alors qu'ils sont parfaitement
+       lisibles en clair. Ces deux jetons sont donc calcules en melangeant
+       l'accent avec du blanc : jamais sombres, et comme ils dependent de
+       `--accent-base` ils suivent le theme sans avoir a etre redefinis. */
+    --on-nuit-doux: color-mix(in oklab, var(--accent-base) 32%, white);
+    --on-nuit-vif: color-mix(in oklab, var(--accent-base) 58%, white);
 }
 
 /*
@@ -105,6 +136,22 @@
     --line-soft: #26344a;
     --on-brand: #020617;
     --shadow-tint: 0 0 0;
+
+    /* Memes jetons, valeurs basculees au theme sombre : voile d'or sur la
+       surface sombre, encre claire pour rester lisible dessus. */
+    --p-soft: color-mix(in oklab, var(--accent-base) 16%, #0d1424);
+    --p-soft-ink: var(--p-300);
+    --p-ring: color-mix(in oklab, var(--accent-base) 40%, transparent);
+
+    --ok-fond: color-mix(in oklab, #10b981 16%, #0d1424);
+    --ok-ink: #6ee7b7;
+    --ok-line: color-mix(in oklab, #10b981 40%, #0d1424);
+    --ok-fort: #34d399;
+
+    --alerte-fond: color-mix(in oklab, #f87171 16%, #0d1424);
+    --alerte-ink: #fca5a5;
+    --alerte-line: color-mix(in oklab, #f87171 40%, #0d1424);
+    --alerte-fort: #f87171;
 
     --p-50: color-mix(in oklab, var(--accent-base) 10%, #020617);
     --p-100: color-mix(in oklab, var(--accent-base) 16%, #020617);
@@ -161,6 +208,23 @@
     --color-primary-800: var(--p-800);
     --color-primary-900: var(--p-900);
     --color-primary-hover: var(--p-hover);
+    --color-primary-soft: var(--p-soft);
+    --color-primary-soft-ink: var(--p-soft-ink);
+    --color-primary-ring: var(--p-ring);
+
+    /* Encre des aplats `--nuit` : ne suit pas la rampe, elle reste claire. */
+    --color-on-nuit-doux: var(--on-nuit-doux);
+    --color-on-nuit-vif: var(--on-nuit-vif);
+
+    /* Etats : basculees avec le theme, donc lisibles sur les deux fonds. */
+    --color-ok-bg: var(--ok-fond);
+    --color-ok-ink: var(--ok-ink);
+    --color-ok-line: var(--ok-line);
+    --color-ok-fort: var(--ok-fort);
+    --color-alert-bg: var(--alerte-fond);
+    --color-alert-ink: var(--alerte-ink);
+    --color-alert-line: var(--alerte-line);
+    --color-alert-fort: var(--alerte-fort);
 
     /* Pont de compatibilité : `accent-*` et `primary-*` désignent le même
        accent, celui du thème en cours. Les vues historiques utilisent
@@ -195,6 +259,15 @@
         /* La barre d'en-tête est fixe : sans cette compensation, un lien
            d'ancre s'arrêterait dessous. */
         scroll-padding-top: 6rem;
+
+        /* Filet de sécurité responsive : un débordement horizontal isolé ne doit
+           pas faire apparaître de barre de défilement en bas de page.
+
+           `clip` et non `hidden` : `hidden` transformerait la racine en conteneur
+           de défilement et casserait tous les `position: sticky` du site (barre
+           latérale de l'administration, en-têtes). `clip` rogne sans créer de
+           conteneur, et reste combiné à `overflow-y: visible`. */
+        overflow-x: clip;
     }
 
     [x-cloak] {
@@ -300,11 +373,11 @@
     }
 
     .btn-danger {
-        @apply border border-red-300/70 bg-card text-red-700 hover:bg-red-50;
+        @apply border border-alert-line bg-card text-alert-fort hover:bg-alert-bg;
     }
 
     .btn-outline {
-        @apply border border-line bg-transparent text-ink hover:border-primary-500 hover:bg-primary-50 hover:text-primary-700;
+        @apply border border-line bg-transparent text-ink hover:border-primary-500 hover:bg-primary-soft hover:text-primary-soft-ink;
     }
 
     .btn-light {
@@ -327,7 +400,7 @@
     }
 
     .card-icon {
-        @apply flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-50 text-primary-600
+        @apply flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-soft text-primary-soft-ink
             transition-all duration-300;
     }
 
@@ -344,8 +417,22 @@
     }
 
     .badge-brand {
-        @apply inline-flex items-center gap-1.5 rounded-full bg-primary-50 px-3 py-1 text-xs font-semibold
-            text-primary-700 ring-1 ring-primary-100 ring-inset;
+        @apply inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-3 py-1 text-xs font-semibold
+            text-primary-soft-ink ring-1 ring-primary-ring ring-inset;
+    }
+
+    /* Bandeaux d'état : succes, erreur, information. Les couleurs suivent le
+       theme, donc un encart rouge ne reste pas un aplat pastel en mode sombre. */
+    .alerte {
+        @apply rounded-xl border p-4;
+    }
+
+    .alerte-succes {
+        @apply border-ok-line bg-ok-bg text-ok-ink;
+    }
+
+    .alerte-erreur {
+        @apply border-alert-line bg-alert-bg text-alert-ink;
     }
 
     .stat-nombre {
@@ -368,7 +455,7 @@
     }
 
     .field-message {
-        @apply mt-1 text-xs font-medium text-red-600;
+        @apply mt-1 text-xs font-medium text-alert-fort;
     }
 
     .btn-submit {
@@ -402,7 +489,7 @@
     }
 
     .nav-link-active {
-        @apply bg-primary-50 text-primary-700;
+        @apply bg-primary-soft text-primary-soft-ink;
     }
 
     /* En-tête de section « duo » : titre à gauche, argument à droite. C'est la
@@ -599,81 +686,23 @@
        fermeture ne quitte jamais l'écran.
        ------------------------------------------------------------------ */
 
-    /* `overflow-x: hidden` accompagne `overflow-y: auto` : les pastilles de
-       survol débordent volontairement à droite des liens, on ne veut pas
-       d'ascenseur horizontal. */
+    /* Menu de navigation : une carte posee sur la page, pas un plein ecran.
+       Le fond est pose ici et non via une utilitaire Tailwind (`bg-surface`) :
+       les deux seraient sur le meme element, or `.menu-modal` est emise apres la
+       couche des utilitaires et l'ecraserait a egalite de specificite. */
     .menu-modal {
-        background-color: var(--canvas);
+        background-color: var(--surface);
         opacity: 0;
-        transform: translateY(-1.5rem);
+        transform: translateY(-0.75rem) scale(0.98);
+        transform-origin: top right;
         transition:
-            opacity 0.32s ease,
-            transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+            opacity 0.24s ease,
+            transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     .menu-modal.menu-ouvert {
         opacity: 1;
         transform: none;
-    }
-
-    /* Décor : deux halos couleur + une trame de filets, cette dernière
-       estompagee vers le bas pour que le texte reste sur un fond calme. */
-    .menu-modal__fond {
-        background-image:
-            radial-gradient(42rem 30rem at 8% -8%, color-mix(in oklab, var(--accent-base) 22%, transparent), transparent 62%),
-            radial-gradient(38rem 26rem at 96% 108%, color-mix(in oklab, var(--accent-base) 16%, transparent), transparent 60%),
-            linear-gradient(to right, var(--line-soft) 1px, transparent 1px),
-            linear-gradient(to bottom, var(--line-soft) 1px, transparent 1px);
-        background-size: 100% 100%, 100% 100%, 84px 84px, 84px 84px;
-        mask-image: linear-gradient(to bottom, black 0%, rgb(0 0 0 / 0.35) 55%, transparent 88%);
-    }
-
-    /* Liens : apparition en cascade. Le décalage est posé en style inline
-       (`transition-delay`) pour eviter une classe par lien. */
-    .lien-modal {
-        position: relative;
-        opacity: 0;
-        transform: translateY(14px);
-        transition:
-            opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-            transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    .menu-modal.menu-ouvert .lien-modal {
-        opacity: 1;
-        transform: none;
-    }
-
-    /* Pastille d'arriere-plan au survol, et degradee vers la couleur
-       d'accent quand la rubrique est la page courante. */
-    .lien-modal::before {
-        content: '';
-        position: absolute;
-        inset: 0 -0.75rem;
-        z-index: -1;
-        border-radius: 1rem;
-        background-color: var(--surface);
-        opacity: 0;
-        transform: scaleX(0.97);
-        transition:
-            opacity 0.3s ease,
-            transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    .lien-modal:hover::before,
-    .lien-modal:focus-visible::before {
-        opacity: 1;
-        transform: none;
-    }
-
-    .lien-modal[aria-current='page']::before {
-        opacity: 1;
-        transform: none;
-        background-color: color-mix(in oklab, var(--accent-base) 10%, var(--surface));
-    }
-
-    .lien-modal[aria-current='page'] .lien-modal__titre {
-        color: var(--p-600);
     }
 
     /* Verre dépoli : la zone interactive du hero. */
@@ -781,12 +810,5 @@
         opacity: 1 !important;
         transform: none !important;
         filter: none !important;
-    }
-
-    /* Les liens du menu modal partent d'`opacity: 0`. Sans transition, l'état
-       de départ resterait donc visible : on les force présents. */
-    .menu-modal .lien-modal {
-        opacity: 1 !important;
-        transform: none !important;
     }
 }

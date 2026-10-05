@@ -1,4 +1,4 @@
-﻿@php
+@php
     // Les huit entrées sont servies par le menu modal, sur toutes les largeurs.
     // Aucune barre horizontale n'apparaît dans le bandeau : huit liens serrés
     // jusqu'à 1536 px se lisaient mal et imposaient des libellés courts. Le
@@ -251,14 +251,31 @@
     </header>
 
     {{-- ------------------------------------------------------------------
-         Panneau modal : plein écran, sur toutes les largeurs.
-         Il couvre la page (fond opaque), garde la moitié gauche pour
-         l'identité et les coordonnées directes, et donne les huit rubriques
-         sur la moitié droite en lignes larges. Le défilement de la page est
-         bloqué tant qu'il est ouvert (voir `headerBar`), sinon le visiteur
-         lirait un texte qui glisse pendant qu'il choisit une section.
+         Menu de navigation : une seule presentation, toutes largeurs.
+
+         Il y avait deux menus : une carte compacte sur telephone et un modal
+         editorial plein ecran a partir de `sm:`. Deux Presentations, c'est deux
+         jeux de reglages a entretenir, et la seconde etait bien trop grande sur
+         un petit ecran. Il n'y en a plus qu'une : la carte compacte, partout ou
+         le bouton hamburger est affiche (sous `xl`).
+
+         La carte est ancree en haut a droite, comme le menu d'administration :
+         elle occupe le plus petit rectangle qui tienne les huit rubriques, et le
+         reste de l'ecran reste lisible derriere le voile. Elle defile seule si la
+         liste est plus haute que la place disponible.
+
+         Le fond vient d'une media query dans app.css, pas d'une utilitaire
+         Tailwind : les deux sont posees sur le meme element que `.menu-modal`,
+         qui est emise apres la couche des utilitaires.
          ------------------------------------------------------------------ --}}
-    <div id="menu-principal"
+    <div x-show="open"
+         x-cloak
+         x-transition.opacity
+         x-on:click="fermer()"
+         class="fixed inset-0 z-[60] bg-nuit/60 backdrop-blur-[2px]"
+         aria-hidden="true"></div>
+
+    <nav id="menu-principal"
          x-show="open"
          x-cloak
          x-on:keydown="piegerFocus($event)"
@@ -266,109 +283,57 @@
          role="dialog"
          aria-modal="true"
          aria-label="Menu de navigation"
-         class="menu-modal fixed inset-0 z-[60] overflow-y-auto overflow-x-hidden overscroll-contain">
+         class="menu-modal fixed top-[4.25rem] right-3 z-[61] w-[min(20rem,calc(100vw-1.5rem))]
+                max-h-[calc(100dvh-6rem)] origin-top-right overflow-x-hidden overflow-y-auto overscroll-contain
+                rounded-2xl border border-line p-2 shadow-lift lg:top-[6.75rem]">
 
-        {{-- Décor : deux halos de couleur et une trame de filets. La trame est
-             masquée vers le bas pour que le fond reste calme sous le texte. --}}
-        <div class="menu-modal__fond pointer-events-none absolute inset-0" aria-hidden="true"></div>
+        <div class="flex flex-col">
+            @foreach ($navigation as $index => $item)
+                @php $actif = request()->routeIs($item['route']) || request()->routeIs($item['route'].'.*'); @endphp
+                <a href="{{ $item['url'] }}"
+                   @if ($actif) aria-current="page" @endif
+                   x-on:click="fermer()"
+                   @class([
+                       'flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[0.8125rem] transition-colors',
+                       'bg-primary-soft font-semibold text-primary-soft-ink' => $actif,
+                       'font-medium text-ink hover:bg-canvas' => ! $actif,
+                   ])>
+                    <span class="min-w-0 flex-1 truncate">{{ $item['label'] }}</span>
 
-        <div class="relative mx-auto flex min-h-full w-full max-w-[1400px] flex-col px-5 pt-24 pb-8 sm:px-8 lg:pt-28">
+                    @if ($actif)
+                        <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-primary-600" aria-hidden="true"></span>
+                    @else
+                        <x-icon name="arrow-up-right" class="h-3.5 w-3.5 shrink-0 text-muted" />
+                    @endif
+                </a>
+            @endforeach
 
-            <div class="grid flex-1 gap-x-12 gap-y-10 lg:grid-cols-12">
-
-                {{-- Colonne identité : on donne la réponse à « qui appelle-t-on »
-                     avant d'imposer le choix d'une rubrique. --}}
-                <aside class="lg:col-span-4 xl:col-span-3">
-                    <p class="lien-modal font-serif text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-4xl"
-                       style="transition-delay: 0ms">
-                        Où voulez-vous aller&nbsp;?
-                    </p>
-
-                    <p class="lien-modal mt-4 max-w-sm text-sm leading-relaxed text-muted"
-                       style="transition-delay: 45ms">
-                        Formations, interventions en entreprise et accompagnement.
-                        Huit sections, un seul geste.
-                    </p>
-
-                    <ul class="mt-8 space-y-3 text-sm">
-                        @if (! empty($s['phone_display'] ?? ($s['phone'] ?? null)))
-                            <li class="lien-modal" style="transition-delay: 90ms">
-                                <a href="{{ $content->telUrl() }}"
-                                   class="group flex items-center gap-3 text-copy transition-colors hover:text-primary-600">
-                                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-line bg-card text-muted transition-colors group-hover:border-primary-400 group-hover:text-primary-600">
-                                        <x-icon name="phone" class="h-4 w-4" />
-                                    </span>
-                                    {{ $s['phone_display'] ?? ($s['phone'] ?? '') }}
-                                </a>
-                            </li>
-                        @endif
-
-                        @if (! empty($s['email']))
-                            <li class="lien-modal" style="transition-delay: 135ms">
-                                <a href="{{ $content->emailUrl() }}"
-                                   class="group flex items-center gap-3 break-all text-copy transition-colors hover:text-primary-600">
-                                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-line bg-card text-muted transition-colors group-hover:border-primary-400 group-hover:text-primary-600">
-                                        <x-icon name="mail" class="h-4 w-4" />
-                                    </span>
-                                    {{ $s['email'] }}
-                                </a>
-                            </li>
-                        @endif
-
-                        @if (! empty($s['location']))
-                            <li class="lien-modal flex items-center gap-3 text-copy" style="transition-delay: 180ms">
-                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-line bg-card text-muted">
-                                    <x-icon name="map" class="h-4 w-4" />
-                                </span>
-                                {{ $s['location'] }}
-                            </li>
-                        @endif
-                    </ul>
-                </aside>
-
-                {{-- Colonne navigation : les huit rubriques en lignes pleines
-                     largeur. Le numéro sert de repère visuel et confirme d'un
-                     coup d'œil qu'il n'y a rien d'autre à découvrir. --}}
-                <nav class="lg:col-span-8 xl:col-span-9" aria-label="Navigation principale">
-                    @foreach ($navigation as $index => $item)
-                        @php($numero = str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT))
-                        <a href="{{ $item['url'] }}"
-                           @if (request()->routeIs($item['route'])) aria-current="page" @endif
-                           x-on:click="fermer()"
-                           style="transition-delay: {{ 90 + $index * 45 }}ms"
-                           class="lien-modal group flex items-center gap-4 border-b border-line-soft py-4 sm:gap-6 sm:py-5">
-                            <span class="w-8 shrink-0 text-xs font-semibold tabular-nums text-muted">{{ $numero }}</span>
-
-                            <span class="lien-modal__titre flex-1 font-serif text-3xl font-semibold leading-none tracking-tight text-ink transition-transform duration-300 ease-out group-hover:translate-x-2 sm:text-4xl xl:text-5xl">
-                                {{ $item['label'] }}
-                            </span>
-
-                            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-line text-muted transition-all duration-300 ease-out
-                                         group-hover:border-primary-500 group-hover:bg-primary-600 group-hover:text-on-brand">
-                                <x-icon name="arrow-up-right" class="h-4 w-4 transition-transform duration-300 ease-out group-hover:rotate-45" />
-                            </span>
+            @if (! empty($s['phone_display'] ?? ($s['phone'] ?? null)) || ! empty($s['email']))
+                <div class="mt-1.5 border-t border-line-soft pt-1.5">
+                    @if (! empty($s['phone_display'] ?? ($s['phone'] ?? null)))
+                        <a href="{{ $content->telUrl() }}"
+                           class="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[0.8125rem] font-medium text-muted transition-colors hover:bg-canvas hover:text-ink">
+                            <x-icon name="phone" class="h-3.5 w-3.5 shrink-0" />
+                            <span class="min-w-0 truncate">{{ $s['phone_display'] ?? ($s['phone'] ?? '') }}</span>
                         </a>
-                    @endforeach
-                </nav>
-            </div>
+                    @endif
 
-            {{-- Pied de panneau : les deux décisions possibles, et rien de plus. --}}
-            <div class="mt-10 flex flex-col gap-4 border-t border-line-soft pt-6 sm:flex-row sm:items-center sm:justify-between">
-                <a href="{{ route('contact', ['form' => 'formation']) }}#formulaire-demande"
-                   class="btn-primary"
-                   x-on:click="fermer()">
-                    Demander une formation
-                    <x-icon name="arrow-right" class="h-4 w-4" />
-                </a>
+                    @if (! empty($s['email']))
+                        <a href="{{ $content->emailUrl() }}"
+                           class="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[0.8125rem] font-medium text-muted transition-colors hover:bg-canvas hover:text-ink">
+                            <x-icon name="mail" class="h-3.5 w-3.5 shrink-0" />
+                            <span class="min-w-0 truncate">{{ $s['email'] }}</span>
+                        </a>
+                    @endif
+                </div>
+            @endif
 
-                <a href="{{ $content->whatsappUrl() }}"
-                   target="_blank"
-                   rel="noopener"
-                   class="btn-whatsapp">
-                    <x-icon name="whatsapp" class="h-4 w-4" />
-                    Écrire sur WhatsApp
-                </a>
-            </div>
+            <a href="{{ route('contact', ['form' => 'formation']) }}#formulaire-demande"
+               class="mt-1.5 flex items-center justify-center gap-1.5 rounded-lg bg-primary-600 px-2.5 py-2 text-[0.8125rem] font-semibold text-on-brand transition-colors hover:bg-primary-hover"
+               x-on:click="fermer()">
+                Demander une formation
+                <x-icon name="arrow-right" class="h-3.5 w-3.5" />
+            </a>
         </div>
-    </div>
+    </nav>
 </div>

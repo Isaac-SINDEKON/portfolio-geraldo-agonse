@@ -12,8 +12,8 @@
     </div>
 
     <div class="container-x relative">
-        <nav aria-label="Fil d'Ariane" class="text-xs text-primary-200">
-            <a href="{{ route('home') }}" class="transition hover:text-primary-300">Accueil</a>
+        <nav aria-label="Fil d'Ariane" class="text-xs text-on-nuit-doux">
+            <a href="{{ route('home') }}" class="transition hover:text-on-nuit-vif">Accueil</a>
             <span class="mx-2">/</span>
             <span class="text-white">Témoignages</span>
         </nav>
@@ -21,7 +21,7 @@
         <div class="mt-5 grid gap-8 lg:grid-cols-12 lg:items-end lg:gap-10">
             <div class="lg:col-span-7">
                 <h1 class="text-3xl font-bold text-white sm:text-4xl lg:text-[2.75rem]">Témoignages</h1>
-                <p class="mt-4 max-w-2xl text-base text-primary-100">
+                <p class="mt-4 max-w-2xl text-base text-on-nuit-doux">
                     Ils m'ont fait confiance pour former et accompagner leurs équipes. Voici leur retour.
                 </p>
             </div>
@@ -70,7 +70,7 @@
                     </div>
 
                     <div class="flex-1">
-                        <x-icon name="quote" class="h-7 w-7 text-primary-200" />
+                        <x-icon name="quote" class="h-7 w-7 text-on-nuit-doux" />
                         <blockquote class="mt-3 text-sm leading-relaxed text-copy sm:text-base">
                             « {{ $t['content'] }} »
                         </blockquote>

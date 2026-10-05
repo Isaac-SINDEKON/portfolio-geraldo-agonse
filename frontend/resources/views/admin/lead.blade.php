@@ -50,7 +50,7 @@
         <span @class([
             'shrink-0 rounded-full px-3 py-1 text-xs font-semibold',
             'bg-accent-500/15 text-accent-600' => $estDevis,
-            'bg-primary-50 text-primary-700' => ! $estDevis,
+            'bg-primary-soft text-primary-soft-ink' => ! $estDevis,
         ])>
             {{ $estDevis ? 'Demande de devis' : 'Demande de formation' }}
         </span>

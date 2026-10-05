@@ -99,7 +99,7 @@
                             </a>
                             <span @class([
                                 'rounded-full px-2.5 py-0.5 text-xs font-semibold',
-                                'bg-primary-50 text-primary-700' => ($lead['type'] ?? '') === 'formation',
+                                'bg-primary-soft text-primary-soft-ink' => ($lead['type'] ?? '') === 'formation',
                                 'bg-accent-500/15 text-accent-600' => ($lead['type'] ?? '') === 'devis',
                             ])>
                                 {{ ($lead['type'] ?? '') === 'devis' ? 'Devis' : 'Formation' }}

@@ -15,7 +15,7 @@
     <div class="container-x relative">
         <div class="grid items-center gap-10 lg:grid-cols-12 lg:gap-12">
             <div class="lg:col-span-7" data-reveal="left">
-                <p class="eyebrow inline-flex items-center gap-2 text-primary-300">
+                <p class="eyebrow inline-flex items-center gap-2 text-on-nuit-vif">
                     <span class="h-px w-6 bg-primary-400/70"></span>
                     Prochaine étape
                 </p>
@@ -37,7 +37,7 @@
                         ['map', 'Bénin, Togo ou à distance'],
                     ] as [$icone, $libelle])
                         <li class="flex items-center gap-2">
-                            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-primary-300">
+                            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-on-nuit-vif">
                                 <x-icon :name="$icone" class="h-3.5 w-3.5" />
                             </span>
                             {{ $libelle }}

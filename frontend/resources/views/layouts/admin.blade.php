@@ -57,12 +57,12 @@
                             <x-icon name="arrow-left" class="h-4 w-4" />
                         </button>
 
-                        <h1 class="truncate text-lg font-bold text-ink sm:text-xl">
+                        <h1 class="min-w-0 truncate text-lg font-bold text-ink sm:text-xl">
                             @yield('title', 'Administration')
                         </h1>
                     </div>
 
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-3" x-data>
                         {{-- Bascule clair / sombre : même composant que le site
                              public, donc le même goût et la même persistance. --}}
                         <div x-data="basculeTheme" x-cloak>
@@ -76,6 +76,13 @@
                             </button>
                         </div>
 
+                        {{-- Zone d'actions de la page. Le x-data vide est
+                             indispensable : les boutons « Ajouter » vivent ici,
+                             dans l'en-tête, donc hors du conteneur Alpine du
+                             contenu (@section('content')). Alpine n'initialisant
+                             que l'intérieur d'un x-data, leur x-on:click restait
+                             inerte et le formulaire ne s'ouvrait jamais.
+                             L'evenement window relie le bouton a son contenu. --}}
                         @yield('actions')
                     </div>
                 </div>
@@ -86,18 +93,18 @@
                      afficherait une fois par ligne. Le resume la dit une fois,
                      et il se place avant le repli des pages invalides. --}}
                 @if ($errors->any())
-                    <div class="mt-4 rounded-xl border border-red-200 bg-red-50 p-4" role="alert">
+                    <div class="alerte alerte-erreur mt-4" role="alert">
                         <div class="flex items-start gap-3">
-                            <x-icon name="alert" class="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
+                            <x-icon name="alert" class="mt-0.5 h-5 w-5 shrink-0 text-alert-fort" />
                             <div class="min-w-0">
-                                <p class="text-sm font-semibold text-red-800">
+                                <p class="text-sm font-semibold">
                                     {{ trans_choice(
                                         'Une donnée à corriger.|:count données à corriger.',
                                         $errors->count(),
                                         ['count' => $errors->count()]
                                     ) }}
                                 </p>
-                                <ul class="mt-2 space-y-1 text-sm text-red-700">
+                                <ul class="mt-2 space-y-1 text-sm">
                                     @foreach ($errors->all() as $message)
                                         <li>{{ $message }}</li>
                                     @endforeach
@@ -110,15 +117,15 @@
                 @if (session('success') || session('error') || session('api_error'))
                     <div class="mt-4 space-y-3">
                         @if (session('success'))
-                            <div class="flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 p-4 text-sm font-medium text-green-800" role="status">
-                                <x-icon name="check" class="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
+                            <div class="alerte alerte-succes flex items-start gap-3 text-sm font-medium" role="status">
+                                <x-icon name="check" class="mt-0.5 h-5 w-5 shrink-0 text-ok-fort" />
                                 <p>{{ session('success') }}</p>
                             </div>
                         @endif
 
                         @if (session('error') || session('api_error'))
-                            <div class="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-800" role="alert">
-                                <x-icon name="alert" class="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
+                            <div class="alerte alerte-erreur flex items-start gap-3 text-sm font-medium" role="alert">
+                                <x-icon name="alert" class="mt-0.5 h-5 w-5 shrink-0 text-alert-fort" />
                                 <p>{{ session('error') ?: session('api_error') }}</p>
                             </div>
                         @endif

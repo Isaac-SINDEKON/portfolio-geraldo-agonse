@@ -103,9 +103,9 @@
                         </div>
 
                         @if ($imageUrl)
-                            <label for="{{ $key }}-remove" class="mt-3 flex w-fit cursor-pointer items-center gap-2 text-xs font-medium text-red-600 hover:text-red-700">
+                            <label for="{{ $key }}-remove" class="mt-3 flex w-fit cursor-pointer items-center gap-2 text-xs font-medium text-alert-fort hover:text-alert-ink">
                                 <input type="checkbox" id="{{ $key }}-remove" name="{{ $key }}_remove" value="1"
-                                       class="h-4 w-4 rounded border-line text-red-600 focus:ring-red-500">
+                                       class="h-4 w-4 rounded border-line text-alert-fort focus:ring-alert-fort">
                                 Retirer l'image
                             </label>
                         @endif

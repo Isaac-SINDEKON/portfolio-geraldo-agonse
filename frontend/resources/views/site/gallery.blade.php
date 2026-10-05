@@ -27,8 +27,8 @@
     </div>
 
     <div class="container-x relative">
-        <nav aria-label="Fil d'Ariane" class="text-xs text-primary-200">
-            <a href="{{ route('home') }}" class="transition hover:text-primary-300">Accueil</a>
+        <nav aria-label="Fil d'Ariane" class="text-xs text-on-nuit-doux">
+            <a href="{{ route('home') }}" class="transition hover:text-on-nuit-vif">Accueil</a>
             <span class="mx-2">/</span>
             <span class="text-white">Galerie</span>
         </nav>
@@ -38,7 +38,7 @@
                 <h1 class="text-3xl font-bold text-white sm:text-4xl lg:text-[2.75rem]">
                     {{ $s['gallery_title'] ?? 'Galerie' }}
                 </h1>
-                <p class="mt-4 max-w-2xl text-base text-primary-100">
+                <p class="mt-4 max-w-2xl text-base text-on-nuit-doux">
                     {{ $s['gallery_text'] ?? 'Un aperçu de mon univers professionnel : formations, ateliers et échanges.' }}
                 </p>
             </div>

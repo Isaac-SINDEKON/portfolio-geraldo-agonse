@@ -92,7 +92,7 @@
 
                     <span @class([
                         'relative font-serif font-bold leading-none tracking-tight',
-                        'text-4xl text-line-soft transition-colors duration-500 group-hover:text-primary-100',
+                        'text-4xl text-line-soft transition-colors duration-500 group-hover:text-primary-400',
                         'hidden sm:block' => ! $grande,
                     ])>
                         0{{ $index + 1 }}

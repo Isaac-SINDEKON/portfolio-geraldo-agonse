@@ -231,11 +231,15 @@
                     'lg:col-span-7' => count($qualifications),
                     'lg:col-span-12' => ! count($qualifications),
                 ]) data-reveal>
+                    {{-- `:text` et non `text="{{ }}"` : l'attribut passerait le
+                         texte deja echappe, et le composant l'echapperait une
+                         seconde fois — les apostrophes s'afficheraient
+                         litteralement (`d&#039;un`) au lieu de `d'un`. --}}
                     <x-section-title
                         align="gauche"
                         eyebrow="Votre formateur"
                         title="Un accompagnement construit sur votre réalité"
-                        text="{{ \Illuminate\Support\Str::limit($approche, 320) }}" />
+                        :text="\Illuminate\Support\Str::limit($approche, 320)" />
 
                     <div class="mt-8 flex flex-col gap-3 sm:flex-row">
                         <x-magnetic-btn :href="route('about')" icone="arrow-right" class="px-6 py-3.5">
@@ -317,7 +321,7 @@
                     </div>
 
                     <div class="relative">
-                        <p class="eyebrow text-primary-300">La méthode</p>
+                        <p class="eyebrow text-on-nuit-vif">La méthode</p>
                         <h3 class="mt-3 font-serif text-2xl leading-tight font-bold text-white">
                             80 % de terrain, 20 % de théorie
                         </h3>
@@ -329,7 +333,7 @@
                                 ['chart', 'Mesure du transfert', 'On vérifie à 30 jours ce qui a réellement changé dans les équipes.'],
                             ] as [$icone, $titre, $texte])
                                 <li class="flex gap-4">
-                                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-primary-300">
+                                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-on-nuit-vif">
                                         <x-icon :name="$icone" class="h-5 w-5" />
                                     </span>
                                     <span>

@@ -19,7 +19,7 @@
     <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         @foreach ($stats as $stat)
             <div class="card">
-                <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-50 text-primary-600">
+                <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-soft text-primary-soft-ink">
                     <x-icon :name="$stat['icon']" class="h-5 w-5" />
                 </span>
                 <p class="mt-4 text-3xl font-extrabold text-ink">{{ $stat['value'] }}</p>
@@ -54,7 +54,7 @@
                             </div>
                             <span @class([
                                 'shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold',
-                                'bg-primary-50 text-primary-700' => ($lead['type'] ?? '') === 'formation',
+                                'bg-primary-soft text-primary-soft-ink' => ($lead['type'] ?? '') === 'formation',
                                 'bg-accent-500/15 text-accent-600' => ($lead['type'] ?? '') === 'devis',
                             ])>
                                 {{ ($lead['type'] ?? '') === 'devis' ? 'Devis' : 'Formation' }}

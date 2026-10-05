@@ -714,6 +714,67 @@ window.reinitialiserAnimations = function () {
 // Un changement de preference systeme doit etre pris en compte immediatement.
 mouvementReduit.addEventListener?.('change', initialiserAnimations)
 // ---------------------------------------------------------------------------
+// Copie dans le presse-papiers
+// ---------------------------------------------------------------------------
+// `navigator.clipboard` n'existe que dans un contexte securise (HTTPS, ou
+// 127.0.0.1 en local). Sur un site servi en HTTP simple, il vaut `undefined` :
+// une copie ecrite uniquement avec lui echoue silencieusement, et le visiteur
+// croit que le bouton est casse. Le repli `document.execCommand('copy')` passe
+// par un `textarea` hors ecran et fonctionne partout.
+//
+// Renvoie une promesse : `true` si le texte est bien dans le presse-papiers.
+
+window.copierTexte = function copierTexte(texte) {
+    const valeur = String(texte ?? '')
+
+    if (! valeur) {
+        return Promise.resolve(false)
+    }
+
+    if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(valeur).then(() => true).catch(() => repliExecCommand(valeur))
+    }
+
+    return Promise.resolve(repliExecCommand(valeur))
+}
+
+function repliExecCommand(texte) {
+    const champ = document.createElement('textarea')
+
+    champ.value = texte
+    // Hors ecran plutot que `display:none` : un element masque n'est pas
+    // selectionnable, et la copie echouerait.
+    champ.setAttribute('readonly', '')
+    champ.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;padding:0;border:0;opacity:0'
+    document.body.appendChild(champ)
+
+    const selection = document.getSelection()
+    const plagePrecedente = selection && selection.rangeCount > 0 ? selection.getRangeAt(0) : null
+
+    champ.select()
+    champ.setSelectionRange(0, texte.length)
+
+    let copie = false
+
+    try {
+        copie = document.execCommand('copy')
+    } catch (erreur) {
+        copie = false
+    }
+
+    document.body.removeChild(champ)
+
+    // On rend la selection precedente : un clic qui copie ne doit pas laisser
+    // un texte bleu selectionne sur la page.
+    if (plagePrecedente && selection) {
+        selection.removeAllRanges()
+        selection.addRange(plagePrecedente)
+    }
+
+    return copie
+}
+
+// ---------------------------------------------------------------------------
 // Etats de soumission
 // ---------------------------------------------------------------------------
 // L'administration est en Blade classique : une action POST recharge la page,

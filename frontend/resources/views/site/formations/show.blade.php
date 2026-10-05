@@ -14,10 +14,10 @@
         </div>
 
         <div class="container-x relative">
-            <nav class="text-sm text-primary-200" aria-label="Fil d'Ariane">
-                <a href="{{ route('home') }}" class="hover:text-primary-300">Accueil</a>
+            <nav class="text-sm text-on-nuit-doux" aria-label="Fil d'Ariane">
+                <a href="{{ route('home') }}" class="hover:text-on-nuit-vif">Accueil</a>
                 <span class="mx-2">/</span>
-                <a href="{{ route('formations') }}" class="hover:text-primary-300">Formations</a>
+                <a href="{{ route('formations') }}" class="hover:text-on-nuit-vif">Formations</a>
                 <span class="mx-2">/</span>
                 <span class="text-white">{{ $formation['title'] }}</span>
             </nav>
@@ -29,7 +29,7 @@
                 <div>
                     <h1 class="text-3xl font-bold text-white sm:text-4xl">{{ $formation['title'] }}</h1>
                     @if (! empty($formation['subtitle']))
-                        <p class="mt-2 text-lg text-primary-200">{{ $formation['subtitle'] }}</p>
+                        <p class="mt-2 text-lg text-on-nuit-doux">{{ $formation['subtitle'] }}</p>
                     @endif
                 </div>
             </div>

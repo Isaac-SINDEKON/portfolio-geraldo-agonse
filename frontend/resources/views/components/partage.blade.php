@@ -81,13 +81,18 @@
             </li>
         @endforeach
 
-        {{-- Copie du lien : reste disponible meme sans reseau social installe --}}
+        {{-- Copie du lien : reste disponible meme sans reseau social installe.
+             `window.copierTexte` (app.js) retombe sur execCommand hors contexte
+             securise ; sans lui, `navigator.clipboard` est undefined en HTTP et
+             le bouton ne faisait rien du tout. --}}
         <li>
             <button type="button"
                     x-data="{ fait: false }"
                     x-on:click="
-                        navigator.clipboard?.writeText($root.dataset.url)
-                            .then(() => { fait = true; setTimeout(() => fait = false, 2000); });
+                        window.copierTexte($root.dataset.url).then(function (etat) {
+                            fait = etat;
+                            setTimeout(function () { fait = false; }, 2000);
+                        });
                     "
                     aria-label="Copier le lien de la page"
                     class="group flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold transition {{ $pastille }}">

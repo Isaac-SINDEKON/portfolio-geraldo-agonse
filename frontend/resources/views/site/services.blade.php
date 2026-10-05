@@ -16,8 +16,8 @@
     </div>
 
     <div class="container-x relative">
-        <nav aria-label="Fil d'Ariane" class="text-xs text-primary-200">
-            <a href="{{ route('home') }}" class="transition hover:text-primary-300">Accueil</a>
+        <nav aria-label="Fil d'Ariane" class="text-xs text-on-nuit-doux">
+            <a href="{{ route('home') }}" class="transition hover:text-on-nuit-vif">Accueil</a>
             <span class="mx-2">/</span>
             <span class="text-white">Services aux entreprises</span>
         </nav>
@@ -25,7 +25,7 @@
         <div class="mt-5 grid gap-8 lg:grid-cols-12 lg:items-end lg:gap-10">
             <div class="lg:col-span-7">
                 <h1 class="text-3xl font-bold text-white sm:text-4xl lg:text-[2.75rem]">Services aux entreprises</h1>
-                <p class="mt-4 max-w-2xl text-base text-primary-100">
+                <p class="mt-4 max-w-2xl text-base text-on-nuit-doux">
                     Des prestations sur mesure pour armer vos équipes et transformer durablement vos pratiques.
                 </p>
             </div>

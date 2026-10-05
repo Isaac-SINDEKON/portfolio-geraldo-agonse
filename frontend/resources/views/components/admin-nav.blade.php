@@ -76,7 +76,7 @@
             <a href="{{ $entree['url'] }}"
                @class([
                    'relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-                   'bg-primary-50 text-primary-800' => $actif,
+                   'bg-primary-soft text-primary-soft-ink' => $actif,
                    'text-muted hover:bg-canvas hover:text-ink' => ! $actif,
                ])
                @if ($actif) aria-current="page" @endif>
@@ -84,8 +84,8 @@
                     <span class="absolute inset-y-1.5 -left-3 w-1 rounded-r-full bg-primary-600" aria-hidden="true"></span>
                 @endif
 
-                <x-icon :name="$entree['icon']" @class(['h-5 w-5 shrink-0', 'text-primary-600' => $actif, 'text-muted' => ! $actif]) />
-                <span class="truncate">{{ $entree['label'] }}</span>
+                <x-icon :name="$entree['icon']" @class(['h-5 w-5 shrink-0', 'text-primary-soft-ink' => $actif, 'text-muted' => ! $actif]) />
+                <span class="min-w-0 truncate">{{ $entree['label'] }}</span>
             </a>
         @endforeach
     </nav>
@@ -100,7 +100,7 @@
         <form method="POST" action="{{ route('admin.logout') }}">
             @csrf
             <button type="submit"
-                    class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-600 transition hover:bg-red-50">
+                    class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-alert-fort transition hover:bg-alert-bg">
                 <x-icon name="logout" class="h-5 w-5" />
                 Se déconnecter
             </button>
@@ -139,48 +139,57 @@
     </header>
 
     <div x-show="open" x-cloak x-transition.opacity @click="open = false"
-         class="fixed inset-0 z-40 bg-slate-900/40" aria-hidden="true"></div>
+         class="fixed inset-0 z-40 bg-nuit/60 backdrop-blur-[2px] lg:hidden" aria-hidden="true"></div>
 
+{{-- Panneau compact ancre en haut a droite : la pleine largeur de l'ancienne
+         version couvrait l'ecran et repoussait la page vers le bas. La largeur est
+         bornee, les rangees sont plus basses, et la liste defile seule. La
+         geometrie reprend celle du menu public, pour que les deux se ressemblent.
+         `dvh` evite le decalage quand la barre d'adresse mobile se replie. --}}
     <nav id="menu-admin"
          x-show="open"
          x-cloak
          x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="-translate-y-2 opacity-0"
-         x-transition:enter-end="translate-y-0 opacity-100"
-         class="fixed inset-x-0 top-16 z-50 max-h-[calc(100vh-4rem)] overflow-y-auto border-b border-line bg-surface shadow-xl lg:hidden"
+         x-transition:enter-start="-translate-y-1 scale-95 opacity-0"
+         x-transition:enter-end="translate-y-0 scale-100 opacity-100"
+         class="menu-modal fixed top-[4.5rem] right-3 z-50 w-[min(20rem,calc(100vw-1.5rem))]
+                 max-h-[calc(100dvh-6rem)] origin-top-right overflow-x-hidden overflow-y-auto overscroll-contain
+                rounded-2xl border border-line p-2 shadow-lift lg:hidden"
          aria-label="Navigation de l'administration">
-        <div class="flex flex-col px-4 py-2">
-            {{-- container-x impose un max-w-7xl et un padding lateral orientes
-                 page publique : dans un tiroir pleine largeur, un simple
-                 padding suffit. --}}
+        <div class="flex flex-col">
             @foreach ($menu as $entree)
                 @php $actif = $estActif($entree); @endphp
                 <a href="{{ $entree['url'] }}"
                    @class([
-                       'flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors',
-                       'bg-primary-50 text-primary-800' => $actif,
-                       'text-ink hover:bg-canvas' => ! $actif,
+                       'flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[0.8125rem] transition-colors',
+                       'bg-primary-soft font-semibold text-primary-soft-ink' => $actif,
+                       'font-medium text-ink hover:bg-canvas' => ! $actif,
                    ])
                    x-on:click="open = false"
                    @if ($actif) aria-current="page" @endif>
-                    <x-icon :name="$entree['icon']" @class(['h-5 w-5 shrink-0', 'text-primary-600' => $actif, 'text-muted' => ! $actif]) />
-                    <span class="truncate">{{ $entree['label'] }}</span>
+                    <span class="min-w-0 flex-1 truncate">{{ $entree['label'] }}</span>
+
+                    @if ($actif)
+                        <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-primary-600" aria-hidden="true"></span>
+                    @else
+                        <x-icon :name="$entree['icon']" class="h-3.5 w-3.5 shrink-0 text-muted" />
+                    @endif
                 </a>
             @endforeach
 
-            <div class="my-2 border-t border-line"></div>
+            <div class="my-1.5 border-t border-line-soft"></div>
 
             <a href="{{ route('home') }}" target="_blank" rel="noopener"
-               class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-muted transition hover:bg-canvas">
-                <x-icon name="eye" class="h-5 w-5 text-muted" />
-                Voir le site
+               class="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[0.8125rem] font-medium text-muted transition hover:bg-canvas hover:text-ink">
+                <x-icon name="eye" class="h-3.5 w-3.5 shrink-0" />
+                <span class="min-w-0 truncate">Voir le site</span>
             </a>
 
             <form method="POST" action="{{ route('admin.logout') }}">
                 @csrf
                 <button type="submit"
-                        class="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50">
-                    <x-icon name="logout" class="h-5 w-5" />
+                        class="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-[0.8125rem] font-medium text-alert-fort transition hover:bg-alert-bg">
+                    <x-icon name="logout" class="h-3.5 w-3.5 shrink-0" />
                     Se déconnecter
                 </button>
             </form>

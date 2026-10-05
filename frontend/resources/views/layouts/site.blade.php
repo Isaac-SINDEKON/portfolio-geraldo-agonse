@@ -200,11 +200,18 @@
     <x-site-footer :partage-titre="$shareTitle" :partage-description="$shareDescription" />
     <x-whatsapp-float />
 
-    {{-- Confirmation visuelle apres un clic sur un lien email : sans client
-         de messagerie configure, le mailto: ne declenche rien et le visiteur
-         croit que le lien est casse. L'adresse est donc aussi copiee. --}}
+    {{-- Deuxieme filet de securite apres un clic sur un lien email.
+         Un `mailto:` n'ouvre quelque chose que si l'ordinateur du visiteur a
+         un logiciel de messagerie associe au protocole : sur une machine qui
+         n'en a pas, le clic ne produit aucun effet visible et le visiteur
+         croit que le lien est casse. L'adresse est donc aussi copiee, et
+         affichee selectionnable si la copie est refusee.
+
+         `pointer-events` passe a `auto` a l'affichage : le texte doit pouvoir
+         etre selectionne a la souris quand aucun programme ne veut le copier
+         pour lui. --}}
     <div id="toast-email"
-         class="pointer-events-none fixed bottom-24 left-1/2 z-[60] -translate-x-1/2 translate-y-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white opacity-0 shadow-lg transition duration-300"
+         class="pointer-events-none fixed bottom-24 left-1/2 z-[60] max-w-[92vw] -translate-x-1/2 translate-y-2 rounded-full bg-slate-900 px-4 py-2 text-center text-sm font-medium text-white opacity-0 shadow-lg transition duration-300"
          role="status" aria-live="polite"></div>
 
     @livewireScripts
@@ -214,7 +221,7 @@
             var toast = document.getElementById('toast-email');
             var minuteur = null;
 
-            function montrer(message) {
+            function montrer(message, selectionnable) {
                 if (!toast) {
                     return;
                 }
@@ -222,12 +229,27 @@
                 toast.textContent = message;
                 toast.style.opacity = '1';
                 toast.style.transform = 'translate(-50%, 0)';
+                toast.style.pointerEvents = selectionnable ? 'auto' : 'none';
+
+                if (selectionnable) {
+                    var plage = document.createRange();
+
+                    plage.selectNodeContents(toast);
+
+                    var selection = window.getSelection();
+
+                    if (selection) {
+                        selection.removeAllRanges();
+                        selection.addRange(plage);
+                    }
+                }
 
                 clearTimeout(minuteur);
                 minuteur = setTimeout(function () {
                     toast.style.opacity = '0';
                     toast.style.transform = 'translate(-50%, 0.5rem)';
-                }, 3000);
+                    toast.style.pointerEvents = 'none';
+                }, 5000);
             }
 
             document.addEventListener('click', function (evenement) {
@@ -248,15 +270,20 @@
                     return;
                 }
 
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(adresse).then(function () {
-                        montrer('Adresse copiée : ' + adresse);
-                    }, function () {
-                        montrer(adresse);
-                    });
-                } else {
-                    montrer(adresse);
-                }
+                // `window.copierTexte` est defini par app.js et retombe sur
+                // execCommand hors contexte securise ; le dernier `etat` couvre
+                // le cas ou le script n'a pas charge du tout.
+                var copie = window.copierTexte
+                    ? window.copierTexte(adresse)
+                    : Promise.resolve(false);
+
+                Promise.resolve(copie).then(function (etat) {
+                    if (etat) {
+                        montrer('Adresse copiée : ' + adresse, false);
+                    } else {
+                        montrer(adresse + ' — copie impossible, adresse sélectionnée', true);
+                    }
+                });
             });
         })();
     </script>
