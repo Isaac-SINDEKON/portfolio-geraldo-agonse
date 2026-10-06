@@ -251,40 +251,6 @@
                     toast.style.pointerEvents = 'none';
                 }, 5000);
             }
-
-            document.addEventListener('click', function (evenement) {
-                var lien = evenement.target.closest('a[href^="mailto:"]');
-
-                if (!lien) {
-                    return;
-                }
-
-                // On ne bloque jamais le mailto: le client de messagerie
-                // doit pouvoir s'ouvrir si l'utilisateur en a un.
-                var adresse = lien.getAttribute('href')
-                    .replace(/^mailto:/i, '')
-                    .split('?')[0]
-                    .trim();
-
-                if (!adresse) {
-                    return;
-                }
-
-                // `window.copierTexte` est defini par app.js et retombe sur
-                // execCommand hors contexte securise ; le dernier `etat` couvre
-                // le cas ou le script n'a pas charge du tout.
-                var copie = window.copierTexte
-                    ? window.copierTexte(adresse)
-                    : Promise.resolve(false);
-
-                Promise.resolve(copie).then(function (etat) {
-                    if (etat) {
-                        montrer('Adresse copiée : ' + adresse, false);
-                    } else {
-                        montrer(adresse + ' — copie impossible, adresse sélectionnée', true);
-                    }
-                });
-            });
         })();
     </script>
 </body>
