@@ -40,7 +40,6 @@ vendor/
 
 # --- Assets compiles ---------------------------------------------------------
 # Regeneres par `npm run build` dans installer.ps1.
-**/public/build/
 **/public/hot/
 
 # --- Cles, jetons et caches d'outils -----------------------------------------
