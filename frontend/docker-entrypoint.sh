@@ -6,6 +6,9 @@ cd /var/www/html
 # Pas de .env dans l'image : defauts sûrs pour la production.
 export APP_ENV="${APP_ENV:-production}"
 export APP_DEBUG="${APP_DEBUG:-false}"
+# Sans .env, config('app.name') vaudrait "Laravel" : en-tete, titres et mails
+# porteraient donc le nom du framework.
+export APP_NAME="${APP_NAME:-Portfolio Geraldo Perridys AGONSE}"
 
 # Pas de base cote frontend : sessions, cache et file d'attente passent sur
 # fichiers. Les defauts du projet sont "database" et echoueraient ici.

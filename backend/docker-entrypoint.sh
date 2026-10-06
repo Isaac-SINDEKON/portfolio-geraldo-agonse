@@ -7,6 +7,9 @@ cd /var/www/html
 # sûrs pour la production (sinon APP_DEBUG=true affiche le code en erreur).
 export APP_ENV="${APP_ENV:-production}"
 export APP_DEBUG="${APP_DEBUG:-false}"
+# Sans .env, config('app.name') vaudrait "Laravel" : en-tete, titres et mails
+# porteraient donc le nom du framework.
+export APP_NAME="${APP_NAME:-Portfolio Geraldo Perridys AGONSE}"
 
 # Render fournit DATABASE_URL (PostgreSQL managé) : on le traduit en connexion
 # Laravel. Sans base du tout, repli sur SQLite locale (perdue au redemarrage).

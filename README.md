@@ -357,6 +357,7 @@ variable oubliée (section 8.3).
 | `APP_URL` | `https://portfolio-api-xxxx.onrender.com` |
 | `APP_KEY` | `php artisan key:generate --show` dans `backend/` |
 | `APP_DEBUG` | `false` |
+| `APP_NAME` | optionnel : défaut déjà fourni par le conteneur |
 
 `portfolio-web` (frontend) :
 
@@ -366,6 +367,7 @@ variable oubliée (section 8.3).
 | `APP_URL` | `https://portfolio-web-xxxx.onrender.com` |
 | `APP_KEY` | une clé différente, générée dans `frontend/` |
 | `APP_DEBUG` | `false` |
+| `APP_NAME` | optionnel : défaut déjà fourni par le conteneur |
 
 Génération des clés (sur la machine de développement) :
 
