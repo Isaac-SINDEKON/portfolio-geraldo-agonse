@@ -88,22 +88,14 @@ demande le mot de passe actuel, puis le nouveau saisi deux fois (8 caractères
 minimum). Par sécurité, toutes les sessions sont fermées et il faut se
 reconnecter avec le nouveau mot de passe.
 
-> Le mot de passe livré est `Geraldo@2026` : **changez-le à la première
-> connexion**. Un mot de passe oublié se réinitialise sans interface, en ligne
-> de commande :
+> **Le mot de passe initial est défini dans `backend/database/seeders/DatabaseSeeder.php`**.
+> **Changez-le immédiatement à la première connexion** via *Tableau de bord → Mot de passe*.
+> En cas d'oubli, réinitialisez en ligne de commande :
 >
 > ```powershell
 > cd backend
-> php artisan tinker --execute="App\Models\User::find(1)->update(['password' => 'NouveauMotDePasse2026']);"
+> php artisan tinker --execute="App\Models\User::find(1)->update(['password' => 'VotreNouveauMotDePasse2026']);"
 > ```
->
-> > **Le mot de passe est écrit en clair dans ce dépôt** : ici, dans
-> > `backend/database/seeders/DatabaseSeeder.php` et dans les cinq scripts
-> > d'audit (`verify_cc.php`, `verify_api.php`, `verify_frontend.php`,
-> > `verify_extra_phones.php`, `verify_isolated.php`), qui en ont besoin pour
-> > ouvrir une session réelle. Un dépôt **public** ne doit donc jamais être
-> > associé à ce projet : gardez-le privé, ou changez le mot de passe et
-> > mettez ces cinq références à jour avant de publier le code.
 
 ---
 
@@ -281,7 +273,6 @@ Reste à faire, hors développement :
 - `APP_DEBUG=false` dans `backend/.env` **et** `frontend/.env` : avec `true`,
   une erreur affiche le détail technique aux visiteurs ;
 - identifiants SMTP (section 6) — facultatif, le site fonctionne sans ;
-- changement du mot de passe administrateur (mot de passe initial `Geraldo@2026`,
-  présent en clair dans le dépôt — voir §3) ;
+- **changement du mot de passe administrateur** (défini dans `DatabaseSeeder.php`, à changer via l'interface d'administration) ;
 - mesure d'audience et Search Console ;
 - pages légales (mentions légales, politique de confidentialité).
