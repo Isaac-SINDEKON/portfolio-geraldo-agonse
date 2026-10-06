@@ -146,9 +146,13 @@
          bornee, les rangees sont plus basses, et la liste defile seule. La
          geometrie reprend celle du menu public, pour que les deux se ressemblent.
          `dvh` evite le decalage quand la barre d'adresse mobile se replie. --}}
+    {{-- .menu-modal impose opacity: 0 (animation d'entree) : sans la classe
+         .menu-ouvert le panneau reste invisible tout en gardant son ombre,
+         on ne voit donc que le voile et l'ombre derriere lui. --}}
     <nav id="menu-admin"
          x-show="open"
          x-cloak
+         :class="open ? 'menu-ouvert' : ''"
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="-translate-y-1 scale-95 opacity-0"
          x-transition:enter-end="translate-y-0 scale-100 opacity-100"
