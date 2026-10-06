@@ -10,7 +10,10 @@ storage/framework/cache/*
 storage/framework/sessions/*
 storage/framework/views/*
 storage/framework/testing/*
-storage/app/public/uploads
+# Les photos du site sont versionnees (storage/app/public/uploads) : elles
+# doivent entrer dans l'image, sinon le site perd toutes ses images au
+# deploiement. Seuls les fichiers ajoutes par l'administration apres le
+# build vivent dans le disque ephemere du conteneur.
 database/database.sqlite
 *.sqlite
 tests
