@@ -2,6 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 
+// Controle de sante (Render Health Check Path : /health).
+Route::get('/health', fn () => response('ok', 200, ['Content-Type' => 'text/plain']));
+
 Route::get('/', function () {
     return response()->json([
         'application' => config('app.name'),

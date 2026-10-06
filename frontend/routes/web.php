@@ -16,6 +16,18 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
+| Sante du service (Render Health Check Path : /health)
+|--------------------------------------------------------------------------
+|
+| Reponse immediate, sans base, sans cache et sans appel a l'API : le
+| controle de sante ne depend donc jamais du backend ni du contenu.
+|
+*/
+
+Route::get('/health', fn () => response('ok', 200, ['Content-Type' => 'text/plain']));
+
+/*
+|--------------------------------------------------------------------------
 | Pages publiques (arborescence du CC §6)
 |--------------------------------------------------------------------------
 */
