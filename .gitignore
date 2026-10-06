@@ -17,7 +17,6 @@ vendor/
 !.env.example
 
 # --- Liens symboliques crees par `artisan storage:link` ----------------------
-**/public/storage
 
 # --- Fichiers generes a l'execution ----------------------------------------
 *.log
