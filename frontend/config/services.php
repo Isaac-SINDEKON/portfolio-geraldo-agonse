@@ -37,15 +37,24 @@ return [
     | Backend consomme par App\Services\ApiClient
     |--------------------------------------------------------------------------
     |
-    | L'URL de l'API inclut deja le prefixe de version (API_URL), et l'URL des
-    | fichiers stockes permet de construire les URL d'images renvoyees par
-    | l'API.
+    | L'application consomme uniquement l'API exposee par l'application Laravel
+    | du dossier backend/. API_URL est la racine de ce backend, SANS le prefixe
+    | de version : ApiClient y ajoute /api/v1, et les fichiers stockes sont
+    | servis sur /storage.
+    |
+    | En production, ces valeurs doivent pointer vers le backend en ligne
+    | (ex : https://api.votre-domaine.com). Le defaut 127.0.0.1:8000 est celui
+    | de la machine de developpement : oublier de le remplacer vide les textes
+    | et casse les images sur le site en ligne.
     |
     */
 
     'backend' => [
-        'api_url' => env('API_URL', 'http://127.0.0.1:8000/api/v1'),
-        'storage_url' => env('API_STORAGE_URL', 'http://127.0.0.1:8000/storage'),
+        'api_url' => (str_ends_with((string) env('API_URL', ''), '/api/v1')
+            ? env('API_URL')
+            : env('API_URL', 'http://127.0.0.1:8000').'/api/v1'),
+        'storage_url' => env('API_STORAGE_URL',
+            rtrim(env('API_URL', 'http://127.0.0.1:8000'), '/').'/storage'),
     ],
 
 ];
