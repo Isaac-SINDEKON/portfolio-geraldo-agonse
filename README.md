@@ -286,47 +286,100 @@ livrées en conteneur (`Dockerfile` à la racine de `backend/` et de
 `frontend/`). Aucun `.env` n'est copié dans l'image (`.dockerignore`) :
 **toute la configuration passe par les variables d'environnement Render**.
 
-### 8.1 Les trois services à créer
+### 8.1 Les trois ressources à créer, dans cet ordre
 
-| Service | Type | Root Directory | Health Check Path |
-|---|---|---|---|
-| `portfolio-api` | Web Service (Docker) | `backend` | `/health` |
-| PostgreSQL | PostgreSQL | — | — |
-| `portfolio-web` | Web Service (Docker) | `frontend` | `/health` |
+Ordre imposé : la base d'abord (l'API en a besoin), puis l'API (le site en a
+besoin). **Région identique pour les trois** (sinon pas de réseau privé).
 
-1. **New → Web Service** → dépôt GitHub → *Runtime* **Docker** →
-   *Root Directory* `backend` → plan gratuit → **Create**.
-2. **New → PostgreSQL** → plan gratuit → **Create**, puis dans le service
-   `portfolio-api`, onglet *Environment*, **Connect** la base : la variable
-   `DATABASE_URL` est injectée automatiquement (le démarrage exécute les
-   migrations et le remplissage initial).
-3. **New → Web Service** → même dépôt → *Root Directory* `frontend`.
+**Étape 1 — la base `portfolio-db`**
 
-Le service qui va d'abord en erreur affiche les logs : c'est là que se voit
-une variable oubliée (section 8.3).
+1. Render Dashboard → **New → PostgreSQL**.
+2. *Name* : `portfolio-db` — *Region* : au choix — *Instance* : **Free**.
+3. **Create Database**, attendre l'état **Available**.
+4. Onglet **Connect** → copier l'**Internal Database URL**.
 
-### 8.2 Variables d'environnement
+**Étape 2 — l'API `portfolio-api`**
+
+1. **New → Web Service** → *Build and deploy from a Git repository* →
+   dépôt `portfolio-geraldo-agonse` → **Connect**.
+2. Champs du formulaire :
+
+   | Champ | Valeur |
+   |---|---|
+   | Name | `portfolio-api` |
+   | Branch | `master` |
+   | Region | la même que la base |
+   | Root Directory | `backend` |
+   | Language | **Docker** |
+   | Dockerfile Path | `Dockerfile` (valeur par défaut, ne pas changer) |
+   | Instance Type | **Free** |
+
+3. **Advanced → Environment Variables** : ajouter
+
+   | Key | Value |
+   |---|---|
+   | `DATABASE_URL` | Internal Database URL de l'étape 1 |
+   | `APP_KEY` | `php artisan key:generate --show` lancé dans `backend/` |
+   | `APP_DEBUG` | `false` |
+
+4. **Advanced → Health Check Path** : `/health`.
+5. **Create Web Service** (build 3 à 6 min : Composer, migrations, seed).
+6. Dès que le service est **Live**, copier son URL
+   (`https://portfolio-api-xxxx.onrender.com`) → onglet **Environment** →
+   ajouter `APP_URL` = cette URL → **Save Changes** (relance un déploiement).
+
+**Étape 3 — le site `portfolio-web`**
+
+1. **New → Web Service** → même dépôt → mêmes champs, avec
+   Root Directory `frontend` et Name `portfolio-web`.
+2. **Advanced → Environment Variables** :
+
+   | Key | Value |
+   |---|---|
+   | `API_URL` | URL de `portfolio-api` (sans `/api/v1`) |
+   | `APP_KEY` | une **autre** clé générée dans `frontend/` |
+   | `APP_DEBUG` | `false` |
+
+3. **Advanced → Health Check Path** : `/health`.
+4. **Create Web Service**, puis ajouter `APP_URL` = URL du site comme à
+   l'étape 2.6.
+
+Le premier service en erreur affiche les logs : c'est là qu'apparaît la
+variable oubliée (section 8.3).
+
+### 8.2 Variables d'environnement — récapitulatif
 
 `portfolio-api` (backend) :
 
 | Variable | Valeur |
 |---|---|
-| `APP_URL` | `https://portfolio-api-xxxx.onrender.com` (URL du service) |
-| `APP_KEY` | `php artisan key:generate --show` exécuté dans `backend/` |
+| `DATABASE_URL` | Internal Database URL (colée à l'étape 1) |
+| `APP_URL` | `https://portfolio-api-xxxx.onrender.com` |
+| `APP_KEY` | `php artisan key:generate --show` dans `backend/` |
 | `APP_DEBUG` | `false` |
 
 `portfolio-web` (frontend) :
 
 | Variable | Valeur |
 |---|---|
-| `APP_URL` | `https://portfolio-web-xxxx.onrender.com` (URL du service) |
-| `APP_KEY` | une autre clé (jamais la même que le backend) |
 | `API_URL` | URL du backend, **sans** `/api/v1` |
+| `APP_URL` | `https://portfolio-web-xxxx.onrender.com` |
+| `APP_KEY` | une clé différente, générée dans `frontend/` |
 | `APP_DEBUG` | `false` |
+
+Génération des clés (sur la machine de développement) :
+
+```powershell
+cd backend  ; php artisan key:generate --show   # → portfolio-api
+cd frontend ; php artisan key:generate --show   # → portfolio-web
+```
 
 Le démarrage génère une clé automatiquement si `APP_KEY` est absente, mais
 chaque redéploiement en créerait une nouvelle : les sessions d'administration
 seraient alors perdues. **Renseigner `APP_KEY` évite ça.**
+
+Toute modification d'une variable déclenche automatiquement un nouveau
+déploiement (bouton **Save Changes**).
 
 ### 8.3 Points d'attention
 
@@ -344,5 +397,6 @@ seraient alors perdues. **Renseigner `APP_KEY` évite ça.**
   défini).
 - **Plan gratuit** : le service s'endort après inactivité, le premier
   chargement est alors lent (~30 s) ; une requête de santé l'éveille.
-- Le code n'est pas automatiquement déployé : Render suit la branche `master`
-  du dépôt, un `git push` suffit à déclencher un nouveau build.
+- **Déploiements suivants** : Render surveille la branche `master` du dépôt —
+  tout `git push` sur `master` déclenche un nouveau build des deux services
+  (un changement hors de `backend/` ne redéploie que le site, et inversement).
