@@ -68,7 +68,7 @@ class SiteContent
 
         // Reponse vide alors qu'on attendait du contenu : c'est plus probablement
         // une panne qu'un site legitement vide, donc on ne fige pas cette reponse.
-        if (($data['settings'] ?? []) === []) {
+        if (($data['settings'] ?? []) === [] && empty($data['gallery']) && empty($data['formations'])) {
             if (is_array($enveloppe) && isset($enveloppe['donnees'])) {
                 return static::$cache = $enveloppe['donnees'];
             }
