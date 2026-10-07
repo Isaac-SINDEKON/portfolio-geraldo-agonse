@@ -33,9 +33,10 @@ class AppServiceProvider extends ServiceProvider
             ['site.*', 'layouts.*', 'components.*', 'livewire.*', 'admin.*'],
             function ($view) {
                 $content = app(SiteContent::class);
+                $site = $content->all();
 
                 $view->with('content', $content);
-                $view->with('site', $content->all());
+                $view->with('site', $site);
             }
         );
     }

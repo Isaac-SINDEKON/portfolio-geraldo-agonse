@@ -36,7 +36,7 @@ class ApiClient
     protected function request(): PendingRequest
     {
         $request = Http::baseUrl(config('services.backend.api_url'))
-            ->timeout(15)
+            ->timeout(30)
             ->connectTimeout(5)
             ->acceptJson();
 
@@ -121,11 +121,14 @@ class ApiClient
         }
 
         try {
-            $request = $this->request()->attach(
-                $field,
-                fopen($path, 'rb'),
-                $file->getClientOriginalName()
-            );
+            $request = $this->request()
+                ->timeout(60)
+                ->connectTimeout(10)
+                ->attach(
+                    $field,
+                    fopen($path, 'rb'),
+                    $file->getClientOriginalName()
+                );
 
             $endpoint = ltrim($endpoint, '/');
 

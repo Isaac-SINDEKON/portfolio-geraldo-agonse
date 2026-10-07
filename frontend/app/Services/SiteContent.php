@@ -19,14 +19,14 @@ class SiteContent
     protected const CLE = 'site-contenu';
 
     /** Duree pendant laquelle le contenu est tenu pour frais. */
-    protected const FRAICHEUR = 300;
+    protected const FRAICHEUR = 30;
 
     /**
      * Filet de securite : au-dela de la fraicheur on tente de rafraichir, mais
      * une copie plus ancienne reste servie si l'API ne repond pas. Une coupure
      * de quelques minutes cote backend ne doit pas rendre le site vide.
      */
-    protected const DUREE = 86400;
+    protected const DUREE = 60;
 
     public function __construct(protected ApiClient $api)
     {
@@ -58,9 +58,10 @@ class SiteContent
         // API injoignable : on prefere servir la derniere version connue a un
         // site vide.
         if (! is_array($data)) {
-            return static::$cache = is_array($enveloppe)
-                ? $enveloppe['donnees']
-                : $this->sections([]);
+            if (is_array($enveloppe) && isset($enveloppe['donnees'])) {
+                return static::$cache = $enveloppe['donnees'];
+            }
+            return static::$cache = $this->sections([]);
         }
 
         $donnees = $this->sections($data);
@@ -68,7 +69,10 @@ class SiteContent
         // Reponse vide alors qu'on attendait du contenu : c'est plus probablement
         // une panne qu'un site legitement vide, donc on ne fige pas cette reponse.
         if (($data['settings'] ?? []) === []) {
-            return static::$cache = is_array($enveloppe) ? $enveloppe['donnees'] : $donnees;
+            if (is_array($enveloppe) && isset($enveloppe['donnees'])) {
+                return static::$cache = $enveloppe['donnees'];
+            }
+            return static::$cache = $donnees;
         }
 
         Cache::put(self::CLE, ['vu' => time(), 'donnees' => $donnees], self::DUREE);

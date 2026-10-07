@@ -37,7 +37,7 @@ class MediaController extends Controller
         }
 
         try {
-            $reponse = Http::timeout(15)
+            $reponse = Http::timeout(30)
                 ->connectTimeout(5)
                 ->get(ApiClient::storageBaseUrl().'/'.$chemin);
         } catch (\Throwable) {
