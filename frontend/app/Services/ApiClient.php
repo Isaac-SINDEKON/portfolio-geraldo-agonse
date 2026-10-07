@@ -312,7 +312,19 @@ class ApiClient
         $prefixe = rtrim((string) (parse_url(self::storageBaseUrl(), PHP_URL_PATH) ?: ''), '/').'/';
         $chemin = (string) (parse_url($path, PHP_URL_PATH) ?: '');
 
-        if ($prefixe === '/' || ! str_starts_with($chemin, $prefixe)) {
+        if ($prefixe === '/' || $prefixe === '//') {
+            // Si le prefixe de storage n'est pas identifiable (config manquante/prod),
+            // on tente d'extraire le chemin après /storage/ pour rester stable.
+            if (preg_match('#/storage/(.+)$#', $chemin, $m)) {
+                return ltrim($m[1], '/');
+            }
+            return ltrim($chemin, '/');
+        }
+
+        if (! str_starts_with($chemin, $prefixe)) {
+            if (preg_match('#/storage/(.+)$#', $chemin, $m)) {
+                return ltrim($m[1], '/');
+            }
             return null;
         }
 
