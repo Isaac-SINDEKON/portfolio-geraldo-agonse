@@ -14,9 +14,9 @@
         $site['gallery'] ?? []
     ), fn ($img) => ! empty($img['url'])));
 
-    // Bento : la première photo prend deux cases sur deux, le reste suit en
-    // carrés réguliers. L'inégalité attire l'œil sans casser la lecture.
-    $formes = ['col-span-2 row-span-2', 'col-span-1', 'col-span-1', 'col-span-1', 'col-span-1', 'col-span-1'];
+    // Grille reguliere : toutes les photos en carrés de meme taille, la
+    // premiere n'est plus mise en avant en 2x2 (trop imposante, surtout
+    // sur mobile ou elle occupait toute la largeur).
 @endphp
 
 {{-- EN-TÊTE (CC §13) --}}
@@ -59,11 +59,7 @@
             <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
                 @foreach ($items as $index => $item)
                     <button type="button" @click="open({{ $index }})"
-                            @class([
-                                'group relative overflow-hidden rounded-2xl bg-surface ring-1 ring-line-soft transition hover:-translate-y-1 hover:ring-primary-400',
-                                $formes[$index] ?? 'col-span-1',
-                                'aspect-square' => ($formes[$index] ?? '') !== 'col-span-2 row-span-2',
-                            ])
+                            class="group relative aspect-square overflow-hidden rounded-2xl bg-surface ring-1 ring-line-soft transition hover:-translate-y-1 hover:ring-primary-400"
                             aria-label="Agrandir l'image {{ $index + 1 }}">
                         <img src="{{ $item['url'] }}" alt="{{ $item['caption'] ?: 'Image '.($index + 1) }}"
                              loading="lazy"
