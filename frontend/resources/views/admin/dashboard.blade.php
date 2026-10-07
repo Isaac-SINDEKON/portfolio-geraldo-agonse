@@ -16,13 +16,15 @@
         Voici l’activité récente du site.
     </p>
 
-    <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+    {{-- Mobile : deux cartes par ligne (la 5e occupe toute la largeur),
+         2 colonnes jusqu'a lg, puis la rangee complete de 5. --}}
+    <div class="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         @foreach ($stats as $stat)
-            <div class="card">
+            <div class="card last:col-span-2 lg:last:col-span-1">
                 <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-soft text-primary-soft-ink">
                     <x-icon :name="$stat['icon']" class="h-5 w-5" />
                 </span>
-                <p class="mt-4 text-3xl font-extrabold text-ink">{{ $stat['value'] }}</p>
+                <p class="mt-4 text-2xl font-extrabold text-ink sm:text-3xl">{{ $stat['value'] }}</p>
                 <p class="mt-1 text-xs font-semibold tracking-wide text-muted uppercase">{{ $stat['label'] }}</p>
             </div>
         @endforeach
