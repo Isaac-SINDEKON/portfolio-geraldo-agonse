@@ -5,7 +5,810 @@
 @source '../**/*.blade.php';
 @source '../**/*.js';
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+/*
+|--------------------------------------------------------------------------
+| Maquette « Bento Grid » — précision et prestige
+|--------------------------------------------------------------------------
+| Quatre décisions structurent l'ensemble du site.
+|
+| 1. LE SOMBRE EST LE THÈME PRINCIPAL.
+|    Fond slate-950, cartes slate-800, accent or (amber-500). Le thème clair
+|    existe et reste cohérent : fond slate-50, accent indigo-600, texte
+|    slate-900. Les deux thèmes partagent les mêmes jetons, donc les vues ne
+|    sont jamais dupliées.
+|
+| 2. LA COULEUR D'ACCENT EST THÉMATIQUE.
+|    `--accent-base` vaut indigo 600 en clair et or 500 en sombre. C'est le
+|    seul point de bascule de la palette : toute la rampe `p-*` en dérive.
+|
+| 3. AUCUN TROU, JAMAIS.
+|    Les en-têtes de section sont en deux colonnes (titre à gauche, argument à
+|    droite). Le hero est asymétrique 6/6. Les services sont une bento de
+|    quatre cartes de tailles inégales qui occupe toute la largeur.
+|
+| 4. LE MOUVEMENT EST MESURÉ.
+|    Apparition au défilement, compteurs, halo qui suit le pointeur, bouton
+|    magnétique, bandeau de logos défilant. Tout part d'attributs déclaratifs
+|    et respecte la préférence « moins d'animation » du système.
+*/
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+| Jetons du thème clair — indigo 600, fond slate 50.
+| `--on-brand` est le texte posé sur un aplat de marque : blanc en clair,
+| slate 950 en sombre (l'or ne supporte pas un texte blanc).
+
+| `--accent-base` est LE couleur d'accent du thème. Toute la rampe `p-*` en
+| est dérivée par mélange, donc un seul réglage suffit à changer l'accent du
+| site entier, nuances et survols compris. C'est volontairement distinct de
+| `--brand` : les deux couleurs venues de l'administration restent disponibles
+| sur <html>, mais la maquette impose son identité visuelle.
+*/
+:root {
+    --accent-base: #4f46e5;
+
+    /* Reprises telles quelles depuis l'administration (cf. layouts/site).
+       Conservées pour la compatibilité du contrat, non utilisées par la
+       palette publique. */
+    --brand: var(--accent-base);
+    --brand-accent: #f59e0b;
+
+    --canvas: #f8fafc;
+    --surface: #ffffff;
+    --card: #ffffff;
+    --nuit: #0f172a;
+    --ink: #0f172a;
+    --copy: #475569;
+    --muted: #64748b;
+    --line: rgb(203 213 225 / 0.65);
+    --line-soft: rgb(203 213 225 / 0.5);
+    --on-brand: #ffffff;
+    --shadow-tint: 15 23 42;
+
+    /* Aplat d'accent « discret » : fond de la ligne active, pastille d'icone.
+       En clair c'est un voile d'indigo sur du blanc ; en sombre, l'accent est
+       l'or, donc la meme formule sur du noir donnerait un texte illisible.
+       D'ou deux jetons au lieu d'un : le fond et l'encre se choisissent
+       ensemble, ils ne peuvent pas diverger. */
+    --p-soft: color-mix(in oklab, var(--accent-base) 9%, white);
+    --p-soft-ink: var(--p-800);
+    --p-ring: color-mix(in oklab, var(--accent-base) 24%, transparent);
+
+    /* Etats : succes et erreur. Meme raison que ci-dessus, un rouge pastel
+       pose sur un fond sombre se lit comme une tache claire. */
+    --ok-fond: #ecfdf5;
+    --ok-ink: #065f46;
+    --ok-line: #a7f3d0;
+    --ok-fort: #047857;
+
+    --alerte-fond: #fef2f2;
+    --alerte-ink: #991b1b;
+    --alerte-line: #fecaca;
+    --alerte-fort: #b91c1c;
+
+    /* Rampe indigo : mélanges avec du blanc, puis avec du noir. */
+    --p-50: color-mix(in oklab, var(--accent-base) 6%, white);
+    --p-100: color-mix(in oklab, var(--accent-base) 12%, white);
+    --p-200: color-mix(in oklab, var(--accent-base) 22%, white);
+    --p-300: color-mix(in oklab, var(--accent-base) 38%, white);
+    --p-400: color-mix(in oklab, var(--accent-base) 64%, white);
+    --p-500: color-mix(in oklab, var(--accent-base) 86%, white);
+    --p-600: var(--accent-base);
+    --p-700: color-mix(in oklab, var(--accent-base) 82%, black);
+    --p-800: color-mix(in oklab, var(--accent-base) 66%, black);
+    --p-900: color-mix(in oklab, var(--accent-base) 50%, black);
+
+    /* Au survol d'un aplat de marque, le thème sombre éclaircit (l'or devient
+       plus lisible), le thème clair assombrit (l'indigo gagne en présence). */
+    --p-hover: var(--p-700);
+
+    --halo: color-mix(in oklab, var(--accent-base) 16%, transparent);
+
+    /* Encre des aplats sombres. `--nuit` reste sombre dans les deux themes,
+       donc tout ce qui est pose dessus doit rester clair. Or la rampe
+       d'accent s'inverse en theme sombre : `--p-100` et `--p-200` y virent au
+       noir et disparaissent sur le navy des heros, alors qu'ils sont parfaitement
+       lisibles en clair. Ces deux jetons sont donc calcules en melangeant
+       l'accent avec du blanc : jamais sombres, et comme ils dependent de
+       `--accent-base` ils suivent le theme sans avoir a etre redefinis. */
+    --on-nuit-doux: color-mix(in oklab, var(--accent-base) 32%, white);
+    --on-nuit-vif: color-mix(in oklab, var(--accent-base) 58%, white);
+}
+
+/*
+| Jetons du thème sombre — or 500, fond slate 950, cartes slate 800.
+| La rampe est inversée : 50→300 sont des aplats sombres teintés d'or,
+| 400→600 des tons lumineux réservés au texte et aux icônes.
+| Seul `--accent-base` change : la structure de la rampe est partagée.
+*/
+.dark {
+    --accent-base: #f59e0b;
+
+    --canvas: #080d18;
+    --surface: #0d1424;
+    --card: #1e293b;
+    --nuit: #020617;
+    --ink: #f8fafc;
+    --copy: #cbd5e1;
+    --muted: #94a3b8;
+    --line: #1e293b;
+    --line-soft: #26344a;
+    --on-brand: #020617;
+    --shadow-tint: 0 0 0;
+
+    /* Memes jetons, valeurs basculees au theme sombre : voile d'or sur la
+       surface sombre, encre claire pour rester lisible dessus. */
+    --p-soft: color-mix(in oklab, var(--accent-base) 16%, #0d1424);
+    --p-soft-ink: var(--p-300);
+    --p-ring: color-mix(in oklab, var(--accent-base) 40%, transparent);
+
+    --ok-fond: color-mix(in oklab, #10b981 16%, #0d1424);
+    --ok-ink: #6ee7b7;
+    --ok-line: color-mix(in oklab, #10b981 40%, #0d1424);
+    --ok-fort: #34d399;
+
+    --alerte-fond: color-mix(in oklab, #f87171 16%, #0d1424);
+    --alerte-ink: #fca5a5;
+    --alerte-line: color-mix(in oklab, #f87171 40%, #0d1424);
+    --alerte-fort: #f87171;
+
+    --p-50: color-mix(in oklab, var(--accent-base) 10%, #020617);
+    --p-100: color-mix(in oklab, var(--accent-base) 16%, #020617);
+    --p-200: color-mix(in oklab, var(--accent-base) 26%, #020617);
+    --p-300: color-mix(in oklab, var(--accent-base) 40%, #020617);
+    --p-400: color-mix(in oklab, var(--accent-base) 62%, white);
+    --p-500: color-mix(in oklab, var(--accent-base) 84%, white);
+    --p-600: var(--accent-base);
+    --p-700: color-mix(in oklab, var(--accent-base) 82%, black);
+    --p-800: color-mix(in oklab, var(--accent-base) 66%, black);
+    --p-900: color-mix(in oklab, var(--accent-base) 52%, black);
+
+    --p-hover: var(--p-500);
+
+    --halo: color-mix(in oklab, var(--accent-base) 20%, transparent);
+}
+
+@theme inline {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* Playfair Display réservé aux H1 et H2 : c'est l'autorité qui donne
+       au site, la sans-serif technique garde le corps de texte net. */
+    --font-serif: 'Playfair Display', ui-serif, Georgia, Cambria, 'Times New Roman', serif;
+
+    /* Surfaces et encre : ce bloc permet les deux thèmes sans dupliquer une
+       seule vue. */
+    --color-canvas: var(--canvas);
+    --color-surface: var(--surface);
+    --color-card: var(--card);
+    --color-nuit: var(--nuit);
+    --color-ink: var(--ink);
+    --color-copy: var(--copy);
+    --color-muted: var(--muted);
+    --color-line: var(--line);
+    --color-line-soft: var(--line-soft);
+    --color-on-brand: var(--on-brand);
+
+    /* Ombres : très basses et très diffuses. Une bento grid se joue sur les
+       bordures d'un pixel, pas sur le relief. */
+    --shadow-soft: 0 1px 2px rgb(var(--shadow-tint) / 0.05), 0 8px 24px -16px rgb(var(--shadow-tint) / 0.22);
+    --shadow-lift: 0 1px 2px rgb(var(--shadow-tint) / 0.06), 0 28px 60px -32px rgb(var(--shadow-tint) / 0.4);
+    --shadow-glow: 0 20px 50px -22px var(--halo);
+
+    /* Rampe de marque. */
+    --color-primary-50: var(--p-50);
+    --color-primary-100: var(--p-100);
+    --color-primary-200: var(--p-200);
+    --color-primary-300: var(--p-300);
+    --color-primary-400: var(--p-400);
+    --color-primary-500: var(--p-500);
+    --color-primary-600: var(--p-600);
+    --color-primary-700: var(--p-700);
+    --color-primary-800: var(--p-800);
+    --color-primary-900: var(--p-900);
+    --color-primary-hover: var(--p-hover);
+    --color-primary-soft: var(--p-soft);
+    --color-primary-soft-ink: var(--p-soft-ink);
+    --color-primary-ring: var(--p-ring);
+
+    /* Encre des aplats `--nuit` : ne suit pas la rampe, elle reste claire. */
+    --color-on-nuit-doux: var(--on-nuit-doux);
+    --color-on-nuit-vif: var(--on-nuit-vif);
+
+    /* Etats : basculees avec le theme, donc lisibles sur les deux fonds. */
+    --color-ok-bg: var(--ok-fond);
+    --color-ok-ink: var(--ok-ink);
+    --color-ok-line: var(--ok-line);
+    --color-ok-fort: var(--ok-fort);
+    --color-alert-bg: var(--alerte-fond);
+    --color-alert-ink: var(--alerte-ink);
+    --color-alert-line: var(--alerte-line);
+    --color-alert-fort: var(--alerte-fort);
+
+    /* Pont de compatibilité : `accent-*` et `primary-*` désignent le même
+       accent, celui du thème en cours. Les vues historiques utilisent
+       `accent-*` ; ce bloc évite de les dupliquer une à une. */
+    --color-accent: var(--p-600);
+    --color-accent-100: var(--p-100);
+    --color-accent-200: var(--p-200);
+    --color-accent-300: var(--p-300);
+    --color-accent-400: var(--p-400);
+    --color-accent-500: var(--p-500);
+    --color-accent-600: var(--p-600);
+    --color-accent-700: var(--p-700);
+    --color-accent-900: var(--p-900);
+
+    /* Safran : micro-labels uniquement. */
+    --color-saffron-50: #fefce8;
+    --color-saffron-100: #fef9c3;
+    --color-saffron-200: #fef08a;
+    --color-saffron-300: #fde047;
+    --color-saffron-400: #facc15;
+    --color-saffron-500: #eab308;
+    --color-saffron-600: #ca8a04;
+    --color-saffron-700: #a16207;
+
+    /* Convention de marque : le vert reste propre à WhatsApp. */
+    --color-whatsapp: #25d366;
+}
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+        /* La barre d'en-tête est fixe : sans cette compensation, un lien
+           d'ancre s'arrêterait dessous. */
+        scroll-padding-top: 6rem;
+
+        /* Filet de sécurité responsive : un débordement horizontal isolé ne doit
+           pas faire apparaître de barre de défilement en bas de page.
+
+           `clip` et non `hidden` : `hidden` transformerait la racine en conteneur
+           de défilement et casserait tous les `position: sticky` du site (barre
+           latérale de l'administration, en-têtes). `clip` rogne sans créer de
+           conteneur, et reste combiné à `overflow-y: visible`. */
+        overflow-x: clip;
+    }
+
+    [x-cloak] {
+        display: none !important;
+    }
+
+    body {
+        @apply bg-canvas text-copy antialiased;
+        font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+        transition: background-color 0.4s ease, color 0.4s ease;
+    }
+
+    /* Les titres sont en Playfair Display : c'est le signe de prestige du
+       site. Les H3 et H4 restent en Inter pour rester techniques. */
+    h1, h2 {
+        @apply font-serif text-ink;
+    }
+
+    h3, h4 {
+        @apply font-sans text-ink font-bold tracking-tight;
+    }
+
+    ::selection {
+        background: color-mix(in oklab, var(--p-600) 26%, transparent);
+    }
+
+    * {
+        scrollbar-color: color-mix(in oklab, var(--p-600) 40%, transparent) transparent;
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--p-600);
+        outline-offset: 2px;
+    }
+}
+
+@layer components {
+    .container-x {
+        @apply mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-10;
+    }
+
+    /*
+    | En Tailwind v4, @apply ne résout pas une classe déclarée dans
+    | @layer components. Les styles de base du bouton sont donc partagés via
+    | une liste de sélecteurs, et non via "@apply btn".
+    */
+    .btn,
+    .btn-primary,
+    .btn-whatsapp,
+    .btn-accent,
+    .btn-danger,
+    .btn-outline,
+    .btn-light,
+    .btn-ghost,
+    .btn-submit {
+        @apply relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-2xl px-5 py-3
+            text-sm font-semibold
+            transition-all duration-200
+            focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
+            focus:ring-offset-canvas
+            active:translate-y-px
+            disabled:pointer-events-none disabled:opacity-60;
+    }
+
+    /* Reflet qui traverse le bouton au survol. Il est porté par ::after, donc
+       il n'interfère jamais avec le contenu du lien. */
+    .btn::after,
+    .btn-primary::after,
+    .btn-whatsapp::after,
+    .btn-accent::after,
+    .btn-danger::after,
+    .btn-outline::after,
+    .btn-light::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(110deg, transparent 20%, rgb(255 255 255 / 0.2) 50%, transparent 80%);
+        transform: translateX(-130%);
+        transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+        pointer-events: none;
+    }
+
+    .btn:hover::after,
+    .btn-primary:hover::after,
+    .btn-whatsapp:hover::after,
+    .btn-accent:hover::after,
+    .btn-danger:hover::after,
+    .btn-outline:hover::after,
+    .btn-light:hover::after {
+        transform: translateX(130%);
+    }
+
+    .btn-primary {
+        @apply bg-primary-600 text-on-brand hover:bg-primary-hover hover:shadow-lift;
+    }
+
+    .btn-whatsapp {
+        @apply bg-whatsapp text-white shadow-sm hover:bg-[#1eb855] hover:shadow-lift;
+    }
+
+    .btn-accent {
+        @apply bg-accent-600 text-on-brand shadow-sm hover:bg-accent-500 hover:shadow-lift;
+    }
+
+    .btn-danger {
+        @apply border border-alert-line bg-card text-alert-fort hover:bg-alert-bg;
+    }
+
+    .btn-outline {
+        @apply border border-line bg-transparent text-ink hover:border-primary-500 hover:bg-primary-soft hover:text-primary-soft-ink;
+    }
+
+    .btn-light {
+        @apply border border-white/25 text-white hover:bg-white/10;
+    }
+
+    .btn-ghost {
+        @apply text-copy hover:bg-surface hover:text-ink;
+    }
+
+    /* Carte bento : surface pleine, bordure d'un pixel, coins arrondis. Le
+       relief n'apparaît qu'au survol, et par la bordure avant l'ombre. */
+    .card {
+        @apply relative overflow-hidden rounded-2xl border border-line-soft bg-card p-6;
+        transition: border-color 0.35s ease, box-shadow 0.35s ease, transform 0.35s ease;
+    }
+
+    .card-lift {
+        @apply hover:-translate-y-1 hover:border-line hover:shadow-lift;
+    }
+
+    .card-icon {
+        @apply flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-soft text-primary-soft-ink
+            transition-all duration-300;
+    }
+
+    .card-icon-solid {
+        @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary-600 text-on-brand;
+    }
+
+    .eyebrow {
+        @apply text-xs font-bold tracking-[0.2em] text-primary-600 uppercase;
+    }
+
+    .label-eyebrow {
+        @apply text-xs font-bold tracking-[0.2em] uppercase;
+    }
+
+    .badge-brand {
+        @apply inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-3 py-1 text-xs font-semibold
+            text-primary-soft-ink ring-1 ring-primary-ring ring-inset;
+    }
+
+    /* Bandeaux d'état : succes, erreur, information. Les couleurs suivent le
+       theme, donc un encart rouge ne reste pas un aplat pastel en mode sombre. */
+    .alerte {
+        @apply rounded-xl border p-4;
+    }
+
+    .alerte-succes {
+        @apply border-ok-line bg-ok-bg text-ok-ink;
+    }
+
+    .alerte-erreur {
+        @apply border-alert-line bg-alert-bg text-alert-ink;
+    }
+
+    .stat-nombre {
+        @apply font-serif text-4xl font-bold tracking-tight text-primary-400 sm:text-5xl;
+    }
+
+    .field-label {
+        @apply mb-1.5 block text-sm font-semibold text-ink;
+    }
+
+    .field {
+        @apply w-full rounded-2xl border border-line bg-surface p-3 text-sm text-ink
+            transition-colors duration-200
+            placeholder:text-muted
+            focus:border-transparent focus:bg-card focus:ring-2 focus:ring-primary-500 focus:ring-inset focus:outline-none;
+    }
+
+    .field-error {
+        @apply focus:bg-card focus:ring-red-500;
+    }
+
+    .field-message {
+        @apply mt-1 text-xs font-medium text-alert-fort;
+    }
+
+    .btn-submit {
+        @apply w-full bg-primary-600 py-3.5 text-on-brand hover:bg-primary-hover;
+    }
+
+    .nav-link {
+        @apply relative rounded-xl px-3 py-2 text-sm font-medium text-copy transition-colors duration-200
+            hover:text-ink;
+    }
+
+    /* Soulignement animé : le trait grandit depuis le centre au survol et
+       reste visible sur la page courante. */
+    .nav-link::after {
+        content: '';
+        position: absolute;
+        left: 0.75rem;
+        right: 0.75rem;
+        bottom: 0.3rem;
+        height: 1.5px;
+        border-radius: 2px;
+        background: var(--p-600);
+        transform: scaleX(0);
+        transform-origin: center;
+        transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .nav-link:hover::after,
+    .nav-link-active::after {
+        transform: scaleX(1);
+    }
+
+    .nav-link-active {
+        @apply bg-primary-soft text-primary-soft-ink;
+    }
+
+    /* En-tête de section « duo » : titre à gauche, argument à droite. C'est la
+       pièce qui supprime le vide en bas à droite des sections. */
+    .section-duo {
+        @apply grid items-end gap-6 lg:grid-cols-12 lg:gap-10;
+    }
+}
+
+@layer utilities {
+    /* --- Apparition au défilement ---------------------------------------
+       L'état initial n'est posé que si le JS est actif (classe `js` sur
+       <html>) : sans JavaScript, tout reste visible. */
+    .js [data-reveal] {
+        opacity: 0;
+        transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+            transform 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+            filter 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+        transition-delay: var(--reveal-delay, 0ms);
+    }
+
+    [data-reveal='up'] { transform: translate3d(0, 30px, 0); }
+    [data-reveal='down'] { transform: translate3d(0, -30px, 0); }
+    [data-reveal='left'] { transform: translate3d(-38px, 0, 0); }
+    [data-reveal='right'] { transform: translate3d(38px, 0, 0); }
+    [data-reveal='zoom'] { transform: scale(0.94); }
+    [data-reveal='blur'] { filter: blur(10px); transform: translate3d(0, 22px, 0); }
+    [data-reveal='none'] { transform: none; }
+
+    .js [data-reveal].est-visible,
+    [data-reveal].est-visible {
+        opacity: 1;
+        transform: none;
+        filter: none;
+    }
+
+    /* Grande apparition : le H1 et les accroches montent en cascade. */
+    .js [data-hero] > * {
+        animation: rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .js [data-hero] > *:nth-child(1) { animation-delay: 0.05s; }
+    .js [data-hero] > *:nth-child(2) { animation-delay: 0.14s; }
+    .js [data-hero] > *:nth-child(3) { animation-delay: 0.23s; }
+    .js [data-hero] > *:nth-child(4) { animation-delay: 0.32s; }
+    .js [data-hero] > *:nth-child(5) { animation-delay: 0.41s; }
+    .js [data-hero] > *:nth-child(6) { animation-delay: 0.50s; }
+    .js [data-hero] > *:nth-child(7) { animation-delay: 0.59s; }
+    .js [data-hero] > *:nth-child(8) { animation-delay: 0.68s; }
+
+    /* --- Décor : halos qui dérivent en permanence ------------------------ */
+    .aurora {
+        position: absolute;
+        border-radius: 9999px;
+        filter: blur(80px);
+        will-change: transform;
+    }
+
+    .aurora-1 { animation: derive-a 24s ease-in-out infinite; }
+    .aurora-2 { animation: derive-b 30s ease-in-out infinite; }
+    .aurora-3 { animation: derive-c 36s ease-in-out infinite; }
+
+    /* Grille technique : texture des sections sombres. Le quadrillage suit
+       l'accent du thème en cours, donc indigo en clair et or en sombre. */
+    .grille-technique {
+        background-image:
+            linear-gradient(to right, color-mix(in oklab, var(--p-600) 9%, transparent) 1px, transparent 1px),
+            linear-gradient(to bottom, color-mix(in oklab, var(--p-600) 9%, transparent) 1px, transparent 1px);
+        background-size: 56px 56px;
+        mask-image: radial-gradient(ellipse at center, black, transparent 78%);
+    }
+
+    /* Titre en dégradé : l'accent du thème traverse le mot. */
+    .texte-degrade {
+        background: linear-gradient(
+            104deg,
+            var(--p-700) 0%,
+            var(--p-500) 52%,
+            var(--p-700) 100%
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    /* Bandeau défilant : le dégradé de masque efface les extrémités, aucune
+       bordure n'est nécessaire. */
+    .defilement {
+        mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    }
+
+    /* Version monochrome du bandeau : la preuve institutionnelle doit se lire
+       en gris, jamais en couleur concurrente de l'accent. */
+    .defilement-gris {
+        mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+        filter: grayscale(1);
+    }
+
+    .pulse-doux {
+        animation: pulse-doux 2.4s ease-in-out infinite;
+    }
+
+    .lien-fleche svg {
+        transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .lien-fleche:hover svg {
+        transform: translateX(4px);
+    }
+
+    /* Barre de progression de lecture, pilotée par --scroll. */
+    .barre-progression {
+        transform: scaleX(var(--scroll, 0));
+        transform-origin: left center;
+        will-change: transform;
+    }
+
+    /* Lueur suivant le pointeur (cf. data-glow dans app.js). */
+    .halo-survol {
+        background: radial-gradient(
+            260px circle at var(--glow-x, 50%) var(--glow-y, 50%),
+            var(--halo),
+            transparent 70%
+        );
+        opacity: 0;
+        transition: opacity 0.4s ease;
+    }
+
+    .est-survol .halo-survol,
+    .est-survol > .halo-survol {
+        opacity: 1;
+    }
+
+    /* Inclinaison 3D au survol (cf. data-tilt dans app.js). */
+    .tilt {
+        transform: perspective(1000px)
+            rotateX(var(--tilt-x, 0deg))
+            rotateY(var(--tilt-y, 0deg))
+            translateZ(0);
+        transform-style: preserve-3d;
+        transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tilt.est-incline {
+        transition: transform 0.08s linear;
+    }
+
+    /* Bouton magnétique : l'attraction est écrite dans `--magnet-x/y`, le
+       script ne touche qu'à ces deux variables. */
+    [data-magnet] {
+        transform: translate3d(var(--magnet-x, 0px), var(--magnet-y, 0px), 0);
+        transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    [data-magnet].est-attire {
+        transition: transform 0.12s linear;
+    }
+
+    /* Bouton WhatsApp flottant : replié en pastille, le libellé se déploie au
+       survol ou au focus clavier. L'ombre est teintée du vert WhatsApp : une
+       ombre grise posée sur un fond sombre se lirait comme un contour. */
+    .wa-flottant {
+        box-shadow: 0 10px 28px -10px rgb(37 211 102 / 0.55), 0 2px 6px -2px rgb(15 23 42 / 0.35);
+    }
+
+    .wa-flottant:hover,
+    .wa-flottant:focus-visible {
+        box-shadow: 0 16px 40px -12px rgb(37 211 102 / 0.6), 0 2px 8px -2px rgb(15 23 42 / 0.4);
+    }
+
+    /* Deux anneaux qui s'écartent en boucle : l'appel est visible sans que
+       la pastille ne bouge d'un pixel, donc sans gêner la lecture ni le clic. */
+    .halo-whatsapp::before,
+    .halo-whatsapp::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 9999px;
+        border: 2px solid var(--color-whatsapp);
+        opacity: 0;
+    }
+
+    .halo-whatsapp::before {
+        animation: onde-whatsapp 3s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+    }
+
+    .halo-whatsapp::after {
+        animation: onde-whatsapp 3s cubic-bezier(0.22, 1, 0.36, 1) 1.5s infinite;
+    }
+
+    /* ------------------------------------------------------------------
+       Menu modal : panneau plein écran, présent sur toutes les largeurs.
+       Le bandeau reste au-dessus (z-70 contre z-60), donc la croix de
+       fermeture ne quitte jamais l'écran.
+       ------------------------------------------------------------------ */
+
+    /* Menu de navigation : une carte posee sur la page, pas un plein ecran.
+       Le fond est pose ici et non via une utilitaire Tailwind (`bg-surface`) :
+       les deux seraient sur le meme element, or `.menu-modal` est emise apres la
+       couche des utilitaires et l'ecraserait a egalite de specificite. */
+    .menu-modal {
+        background-color: var(--surface);
+        opacity: 0;
+        transform: translateY(-0.75rem) scale(0.98);
+        transform-origin: top right;
+        transition:
+            opacity 0.24s ease,
+            transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .menu-modal.menu-ouvert {
+        opacity: 1;
+        transform: none;
+    }
+
+    /* Verre dépoli : la zone interactive du hero. */
+    .verre {
+        @apply border border-white/10 bg-white/5 backdrop-blur-xl;
+    }
+}
+
+@keyframes rise {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 26px, 0);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes derive-a {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    33% { transform: translate3d(8%, -10%, 0) scale(1.12); }
+    66% { transform: translate3d(-7%, 7%, 0) scale(0.94); }
+}
+
+@keyframes derive-b {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(-10%, 9%, 0) scale(1.16); }
+}
+
+@keyframes derive-c {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.55; }
+    50% { transform: translate3d(9%, 6%, 0) scale(1.1); opacity: 0.9; }
+}
+
+@keyframes pulse-doux {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(1.4); }
+}
+
+/* Onde du bouton WhatsApp : l'anneau se dilate et s'efface. La pastille, elle,
+   ne bouge pas — le clic reste donc toujours sur la bonne cible. */
+@keyframes onde-whatsapp {
+    0% { transform: scale(1); opacity: 0.55; }
+    70% { transform: scale(1.55); opacity: 0; }
+    100% { transform: scale(1.55); opacity: 0; }
+}
+
+@keyframes defilement-x {
+    from { transform: translate3d(0, 0, 0); }
+    to { transform: translate3d(-50%, 0, 0); }
+}
+
+@keyframes flottement {
+    0%, 100% { transform: translate3d(0, 0, 0); }
+    50% { transform: translate3d(0, -12px, 0); }
+}
+
+@keyframes frappe {
+    0%, 100% { transform: rotate(0deg); }
+    12% { transform: rotate(-14deg); }
+    24% { transform: rotate(10deg); }
+    36% { transform: rotate(-6deg); }
+    48% { transform: rotate(3deg); }
+    60% { transform: rotate(0deg); }
+}
+
+.animate-defilement {
+    animation: defilement-x 38s linear infinite;
+}
+
+.animate-flottement {
+    animation: flottement 6s ease-in-out infinite;
+}
+
+/* Icône WhatsApp : le salut ne rejoue pas en boucle, il est relancé par le
+   script (classe `est-frappe`) à intervalles irréguliers. */
+.frappe-icone {
+    transform-origin: 70% 15%;
+}
+
+.frappe-icone.est-frappe {
+    animation: frappe 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/*
+| Respect des préférences système : aucune animation si le visiteur l'a
+| demandé. Les éléments `data-reveal` restent visibles (l'état masqué n'est
+| posé que si le JS tourne, et le JS se désactive lui aussi).
+*/
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+    }
+
+    .js [data-reveal] {
+        opacity: 1 !important;
+        transform: none !important;
+        filter: none !important;
+    }
 }

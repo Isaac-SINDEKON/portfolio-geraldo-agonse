@@ -115,17 +115,4 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Adresse de réception des demandes du site
-    |--------------------------------------------------------------------------
-    |
-    | Les demandes « formation » et « devis » doivent être transmises à cette
-    | adresse (CC §14 et §15). Elle est distincte de l'adresse d'expédition :
-    | changer MAIL_FROM_ADDRESS ne doit jamais rediriger les demandes.
-    |
-    */
-
-    'leads_to' => env('MAIL_LEADS_ADDRESS', env('MAIL_FROM_ADDRESS', 'geraldoagonse@gmail.com')),
-
 ];
