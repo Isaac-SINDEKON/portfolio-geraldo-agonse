@@ -31,7 +31,7 @@ vendor/
 # --- Sauvegardes et base de donnees -----------------------------------------
 # Contiennent des demandes de contact et des coordonnees : donnees
 # personnelles, hors depot. Les sauvegardes restent dans
-# backend/storage/backups, a copier manuellement.
+# geraldoportfolio/storage/backups, a copier manuellement.
 **/storage/backups/*
 *.sqlite
 *.sqlite-journal

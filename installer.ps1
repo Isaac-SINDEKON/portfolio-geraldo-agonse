@@ -98,41 +98,36 @@ if ($existe.Output.Trim() -eq 'oui') {
     Ok "Base '$DbName' creee"
 }
 
-# --- 3. Fichiers .env ----------------------------------------------------------
-Step 'Fichiers de configuration .env'
+# --- 3. Fichier .env -----------------------------------------------------------
+Step 'Fichier de configuration .env'
 
-foreach ($app in @('backend', 'frontend')) {
-    $env     = Join-Path $root "$app\.env"
-    $exemple = Join-Path $root "$app\.env.example"
+$envFile = Join-Path $root 'geraldoportfolio\.env'
+$exemple = Join-Path $root 'geraldoportfolio\.env.example'
 
-    if (-not (Test-Path -LiteralPath $exemple)) {
-        Fail "Le fichier $exemple est introuvable."
-    }
-
-    if (-not (Test-Path -LiteralPath $env)) {
-        Copy-Item -LiteralPath $exemple -Destination $env
-        Ok "$app : .env cree a partir de .env.example"
-    } else {
-        Ok "$app : .env deja present"
-    }
+if (-not (Test-Path -LiteralPath $exemple)) {
+    Fail "Le fichier $exemple est introuvable."
 }
 
-$envBackend = Join-Path $root 'backend\.env'
-(Get-Content -LiteralPath $envBackend -Raw) `
+if (-not (Test-Path -LiteralPath $envFile)) {
+    Copy-Item -LiteralPath $exemple -Destination $envFile
+    Ok 'geraldoportfolio : .env cree a partir de .env.example'
+} else {
+    Ok 'geraldoportfolio : .env deja present'
+}
+
+# Une seule application, un seul port : APP_URL pointe vers ce port pour que
+# les liens et les images des pages soient corrects.
+(Get-Content -LiteralPath $envFile -Raw) `
     -replace '(?m)^APP_URL=.*$',       'APP_URL=http://127.0.0.1:8000' `
     -replace '(?m)^DB_HOST=.*$',       "DB_HOST=$DbHost" `
     -replace '(?m)^DB_PORT=.*$',       "DB_PORT=$DbPort" `
     -replace '(?m)^DB_DATABASE=.*$',   "DB_DATABASE=$DbName" `
     -replace '(?m)^DB_USERNAME=.*$',   "DB_USERNAME=$DbUser" `
-    -replace '(?m)^DB_PASSWORD=.*$',   "DB_PASSWORD=$DbPassword" |
-    Set-Content -LiteralPath $envBackend -Encoding UTF8
-Ok 'backend : APP_URL et identifiants de base de donnees alignes'
-
-$envFrontend = Join-Path $root 'frontend\.env'
-(Get-Content -LiteralPath $envFrontend -Raw) `
-    -replace '(?m)^APP_URL=.*$', 'APP_URL=http://127.0.0.1:8001' |
-    Set-Content -LiteralPath $envFrontend -Encoding UTF8
-Ok 'frontend : APP_URL aligne sur le port 8001'
+    -replace '(?m)^DB_PASSWORD=.*$',   "DB_PASSWORD=$DbPassword" `
+    -replace '(?m)^# ?PHP_CLI_SERVER_WORKERS=.*$', 'PHP_CLI_SERVER_WORKERS=4' `
+    -replace '(?m)^PHP_CLI_SERVER_WORKERS=.*$',    'PHP_CLI_SERVER_WORKERS=4' |
+    Set-Content -LiteralPath $envFile -Encoding UTF8
+Ok 'geraldoportfolio : APP_URL, identifiants de base de donnees et workers alignes'
 
 # --- 4. Dependances PHP et JavaScript -----------------------------------------
 Step 'Dependances'
@@ -140,70 +135,62 @@ Step 'Dependances'
 if ($SkipDeps) {
     Warn 'Installation des dependances ignoree (-SkipDeps)'
 } else {
-    foreach ($app in @('backend', 'frontend')) {
-        $resultat = Run-Native 'composer' @('install', '--no-interaction', '--prefer-dist', '--no-progress') (Join-Path $root $app)
-        if ($resultat.Code -ne 0) { Fail "composer install a echoue dans $app.`n$($resultat.Output)" }
-        Ok "$app : dependances PHP installees"
-    }
+    $resultat = Run-Native 'composer' @('install', '--no-interaction', '--prefer-dist', '--no-progress') (Join-Path $root 'geraldoportfolio')
+    if ($resultat.Code -ne 0) { Fail "composer install a echoue dans geraldoportfolio.`n$($resultat.Output)" }
+    Ok 'geraldoportfolio : dependances PHP installees'
 
-    $npm = Run-Native 'npm' @('install', '--no-audit', '--no-fund') (Join-Path $root 'frontend')
-    if ($npm.Code -ne 0) { Fail "npm install a echoue dans frontend.`n$($npm.Output)" }
-    Ok 'frontend : dependances JavaScript installees'
+    $npm = Run-Native 'npm' @('install', '--no-audit', '--no-fund') (Join-Path $root 'geraldoportfolio')
+    if ($npm.Code -ne 0) { Fail "npm install a echoue dans geraldoportfolio.`n$($npm.Output)" }
+    Ok 'geraldoportfolio : dependances JavaScript installees'
 }
 
-# --- 5. Cles d'application ----------------------------------------------------
-Step 'Cles de chiffrement'
+# --- 5. Cle d'application -----------------------------------------------------
+Step 'Cle de chiffrement'
 
-foreach ($app in @('backend', 'frontend')) {
-    $env   = Join-Path $root "$app\.env"
-    $dossier = Join-Path $root $app
+$envFile = Join-Path $root 'geraldoportfolio\.env'
+$dossier = Join-Path $root 'geraldoportfolio'
 
-    if (Select-String -LiteralPath $env -Pattern '^APP_KEY=.+' -Quiet) {
-        Ok "$app : APP_KEY deja presente"
-    } else {
-        $resultat = Run-Native 'php' @('artisan', 'key:generate', '--force') $dossier
-        if ($resultat.Code -ne 0) { Fail "Generation de la cle impossible dans $app." }
-        Ok "$app : APP_KEY generee"
-    }
+if (Select-String -LiteralPath $envFile -Pattern '^APP_KEY=.+' -Quiet) {
+    Ok 'geraldoportfolio : APP_KEY deja presente'
+} else {
+    $resultat = Run-Native 'php' @('artisan', 'key:generate', '--force') $dossier
+    if ($resultat.Code -ne 0) { Fail 'Generation de la cle impossible dans geraldoportfolio.' }
+    Ok 'geraldoportfolio : APP_KEY generee'
 }
 
 # --- 6. Tables et contenu ------------------------------------------------------
-Step 'Base de donnees du backend'
+Step 'Base de donnees du geraldoportfolio'
 
-$backend = Join-Path $root 'backend'
+$geraldoportfolio = Join-Path $root 'geraldoportfolio'
 
-Run-Native 'php' @('artisan', 'config:clear') $backend | Out-Null
+Run-Native 'php' @('artisan', 'config:clear') $geraldoportfolio | Out-Null
 
 # La sauvegarde est prise AVANT toute ecriture : elle conserve le contenu
 # reel (textes, photos, formations) si une etape ulterieure echoue.
-$sauvegarde = Run-Native 'php' @('backup_database.php') $backend
+$sauvegarde = Run-Native 'php' @('backup_database.php') $geraldoportfolio
 if ($sauvegarde.Code -eq 0) {
-    Ok 'Sauvegarde du contenu actuel creee dans backend/storage/backups'
+    Ok 'Sauvegarde du contenu actuel creee dans geraldoportfolio/storage/backups'
 } else {
     Warn 'Aucune sauvegarde du contenu existant (base vide ou MySQL indisponible).'
 }
 
-$migrate = Run-Native 'php' @('artisan', 'migrate', '--force') $backend
+$migrate = Run-Native 'php' @('artisan', 'migrate', '--force') $geraldoportfolio
 if ($migrate.Code -ne 0) { Fail "Les migrations ont echoue.`n$($migrate.Output)" }
 Ok 'Tables creees ou mises a jour'
 
-$seed = Run-Native 'php' @('artisan', 'db:seed', '--force') $backend
+$seed = Run-Native 'php' @('artisan', 'db:seed', '--force') $geraldoportfolio
 if ($seed.Code -ne 0) { Fail "Le remplissage initial a echoue.`n$($seed.Output)" }
 Ok 'Contenu de reference insere uniquement dans les tables vides (contenu existant conserve)'
 
-Run-Native 'php' @('artisan', 'storage:link') $backend | Out-Null
+Run-Native 'php' @('artisan', 'storage:link') $geraldoportfolio | Out-Null
 Ok 'Lien public/storage cree (affichage des images)'
 
 # --- 7. Compilation des assets ------------------------------------------------
 Step 'Assets du site'
 
-$frontend = Join-Path $root 'frontend'
-
-Run-Native 'php' @('artisan', 'storage:link') $frontend | Out-Null
-
-$build = Run-Native 'npm' @('run', 'build') $frontend
+$build = Run-Native 'npm' @('run', 'build') $geraldoportfolio
 if ($build.Code -ne 0) { Fail "La compilation des assets a echoue.`n$($build.Output)" }
-Ok 'CSS et JavaScript compiles dans frontend/public/build'
+Ok 'CSS et JavaScript compiles dans geraldoportfolio/public/build'
 
 # --- Termine -------------------------------------------------------------------
 Write-Host ''
@@ -213,6 +200,7 @@ Write-Host '=========================================================' -Foregrou
 Write-Host ''
 Write-Host '  Prochaine etape :  .\demarrer.ps1' -ForegroundColor White
 Write-Host ''
-Write-Host '  Site public    : http://127.0.0.1:8001'              -ForegroundColor White
-Write-Host '  Administration : http://127.0.0.1:8001/admin'       -ForegroundColor White
+Write-Host '  Site public    : http://127.0.0.1:8000'              -ForegroundColor White
+Write-Host '  Administration : http://127.0.0.1:8000/admin'       -ForegroundColor White
+Write-Host '  API            : http://127.0.0.1:8000/api/v1/site' -ForegroundColor White
 Write-Host ''

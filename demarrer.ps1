@@ -1,25 +1,28 @@
 <#
-    Portfolio Geraldo Perridys AGONSE - Script de demarrage (mise au point).
+    Portfolio Geraldo Perridys AGONSE - Script de demarrage.
 
-    Lance les deux serveurs de developpement :
-      - API backend  : http://127.0.0.1:8000
-      - Site public  : http://127.0.0.1:8001  (administration : /admin)
+    Une seule application, un seul port : le site public, l'administration
+    et l'API sont servis par la meme application Laravel.
 
-    A utiliser apres avoir lanc demarrer-mysql (ou demarrage automatique de MySQL).
+      - Site public    : http://127.0.0.1:8000
+      - Administration : http://127.0.0.1:8000/admin
+      - API            : http://127.0.0.1:8000/api/v1/site
+
+    A utiliser apres avoir demarre MySQL (ou demarrage automatique de MySQL).
 #>
 param(
-    [int]    $PortBackend  = 8000,
-    [int]    $PortFrontend = 8001,
+    [int]    $Port = 8000,
     [switch] $Stop
 )
 
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
+$app = Join-Path $root 'geraldoportfolio'
 $logs = Join-Path $root 'storage\logs'
 
 function Stop-Servers {
     Write-Host ''
-    Write-Host 'Arret des serveurs en cours...' -ForegroundColor Yellow
+    Write-Host 'Arret du serveur en cours...' -ForegroundColor Yellow
 
     Get-CimInstance Win32_Process -Filter "Name = 'php.exe'" |
         Where-Object { $_.CommandLine -match 'artisan\s+serve' } |
@@ -28,7 +31,7 @@ function Stop-Servers {
             Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
         }
 
-    Write-Host 'Serveurs arretes.' -ForegroundColor Green
+    Write-Host 'Serveur arrete.' -ForegroundColor Green
 }
 
 if ($Stop) {
@@ -37,12 +40,10 @@ if ($Stop) {
 }
 
 # --- Verification de l'environnement -----------------------------------------
-foreach ($binaire in @('php', 'node', 'npm')) {
-    if (-not (Get-Command $binaire -ErrorAction SilentlyContinue)) {
-        Write-Host "ERREUR : '$binaire' est introuvable dans le PATH." -ForegroundColor Red
-        Write-Host ' Installez-le puis relancez ce script.' -ForegroundColor Red
-        exit 1
-    }
+if (-not (Get-Command 'php' -ErrorAction SilentlyContinue)) {
+    Write-Host "ERREUR : 'php' est introuvable dans le PATH." -ForegroundColor Red
+    Write-Host ' Installez-le puis relancez ce script.' -ForegroundColor Red
+    exit 1
 }
 
 New-Item -ItemType Directory -Path $logs -Force | Out-Null
@@ -57,47 +58,46 @@ if ($verifDb -ne 'ok') {
 }
 Write-Host '  Base de donnees accessible.' -ForegroundColor Green
 
-# --- Arret des eventuels serveurs deja actifs --------------------------------
+# --- Arret de l'eventuel serveur deja actif -----------------------------------
 Stop-Servers | Out-Null
 
 # --- Demarrage -----------------------------------------------------------------
+# Le site public, l'administration et l'API sont servis par la meme application :
+#   - APP_URL doit pointer vers ce port pour que les liens et les images soient
+#     corrects (aucun appel reseau sortant n'est necessaire) ;
+#   - PHP_CLI_SERVER_WORKERS reste utile pour servir plusieurs requetes de front
+#     en parallele (images, Livewire) sans blocage.
+$env:APP_URL = "http://127.0.0.1:$Port"
+$env:PHP_CLI_SERVER_WORKERS = '4'
+
 Write-Host ''
-Write-Host 'Demarrage de l API backend...' -ForegroundColor Cyan
+Write-Host "Demarrage de l application sur le port $Port..." -ForegroundColor Cyan
 Start-Process -FilePath 'php' `
-    -ArgumentList 'artisan', 'serve', "--host=127.0.0.1", "--port=$PortBackend" `
-    -WorkingDirectory (Join-Path $root 'backend') `
+    -ArgumentList 'artisan', 'serve', "--host=127.0.0.1", "--port=$Port" `
+    -WorkingDirectory $app `
     -WindowStyle Hidden `
-    -RedirectStandardOutput (Join-Path $logs 'backend-serve.log') `
-    -RedirectStandardError  (Join-Path $logs 'backend-serve.err.log')
+    -RedirectStandardOutput (Join-Path $logs 'serve.log') `
+    -RedirectStandardError  (Join-Path $logs 'serve.err.log')
 
-Write-Host 'Demarrage du site public...' -ForegroundColor Cyan
-Start-Process -FilePath 'php' `
-    -ArgumentList 'artisan', 'serve', "--host=127.0.0.1", "--port=$PortFrontend" `
-    -WorkingDirectory (Join-Path $root 'frontend') `
-    -WindowStyle Hidden `
-    -RedirectStandardOutput (Join-Path $logs 'frontend-serve.log') `
-    -RedirectStandardError  (Join-Path $logs 'frontend-serve.err.log')
-
-# --- Attente que les deux repondent ------------------------------------------
+# --- Attente que le serveur reponde -------------------------------------------
 $attente = 20
 while ($attente -gt 0) {
     Start-Sleep -Seconds 1
     $attente--
 
-    $api  = Test-NetConnection -ComputerName 127.0.0.1 -Port $PortBackend  -InformationLevel Quiet -WarningAction SilentlyContinue
-    $site = Test-NetConnection -ComputerName 127.0.0.1 -Port $PortFrontend -InformationLevel Quiet -WarningAction SilentlyContinue
-
-    if ($api -and $site) { break }
+    if (Test-NetConnection -ComputerName 127.0.0.1 -Port $Port -InformationLevel Quiet -WarningAction SilentlyContinue) {
+        break
+    }
 }
 
 Write-Host ''
 Write-Host '=========================================================' -ForegroundColor Green
 Write-Host '  Portfolio Geraldo Perridys AGONSE - demarrage termine' -ForegroundColor Green
 Write-Host '=========================================================' -ForegroundColor Green
-Write-Host "  Site public        : http://127.0.0.1:$PortFrontend"                 -ForegroundColor White
-Write-Host "  Administration     : http://127.0.0.1:$PortFrontend/admin"          -ForegroundColor White
-Write-Host "  API backend        : http://127.0.0.1:$PortBackend/api/v1/site"    -ForegroundColor White
+Write-Host "  Site public    : http://127.0.0.1:$Port"                   -ForegroundColor White
+Write-Host "  Administration : http://127.0.0.1:$Port/admin"           -ForegroundColor White
+Write-Host "  API            : http://127.0.0.1:$Port/api/v1/site"     -ForegroundColor White
 Write-Host ''
-Write-Host '  Pour arreter les serveurs : .\demarrer.ps1 -Stop'                   -ForegroundColor Gray
-Write-Host "  Journaux : $logs"                                                   -ForegroundColor Gray
+Write-Host '  Pour arreter le serveur : .\demarrer.ps1 -Stop'             -ForegroundColor Gray
+Write-Host "  Journaux : $logs"                                            -ForegroundColor Gray
 Write-Host ''

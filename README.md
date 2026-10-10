@@ -1,20 +1,22 @@
 # Portfolio Geraldo Perridys AGONSE
 
 Site vitrine professionnel et back-office d'administration.
-Deux applications Laravel 12 dans un même dossier.
+
+Une seule application Laravel 12 sert le site public, l'administration et l'API
+sur un unique port : plus de dossier `frontend`, plus de serveur à faire
+communiquer avec un autre.
 
 ```
 geraldo-portfolio/
-├── installer.ps1          Mise au point complète (à lancer une fois, ou après une coupure)
-├── demarrer.ps1          Démarre / arrête les deux serveurs locaux
-├── backend/              API JSON (Laravel 12 + Sanctum + MySQL)  -> port 8000
-├── frontend/             Site public + administration (Blade + Livewire 4 + Tailwind 4) -> port 8001
+├── installer.ps1          Mise au point complète sur un PC Windows (à lancer une fois, ou après une coupure)
+├── demarrer.ps1           Démarre / arrête le serveur local (port 8000)
+├── geraldoportfolio/      Application complète (Laravel 12 + Sanctum + Livewire 4 + Tailwind 4)
 └── Cahier_des_charges_Portfolio_Geraldo_Perridys_AGONSE.pdf
 ```
 
-Le contenu éditorial (textes, formations, services, témoignages, photos, coordonnées)
-vit uniquement dans la base du `backend`. Le `frontend` le récupère par l'API :
-le propriétaire n'a donc jamais à toucher au code.
+Le contenu éditorial (textes, formations, services, témoignages, photos,
+coordonnées) vit uniquement dans la base de données, et se modifie depuis
+l'administration : le propriétaire n'a donc jamais à toucher au code.
 
 ---
 
@@ -29,9 +31,9 @@ le propriétaire n'a donc jamais à toucher au code.
 Le script est **idempotent** : il peut être relancé autant de fois que nécessaire.
 
 Il vérifie PHP 8.2+, Composer, Node et NPM ; crée la base MySQL si elle manque ;
-recrée les fichiers `.env` ; installe les dépendances ; génère les clés
-`APP_KEY` ; exécute les migrations et le remplissage initial ; crée le lien
-`public/storage` ; compile les assets ; et dépose une sauvegarde SQL.
+recrée le fichier `.env` ; installe les dépendances ; génère la clé `APP_KEY` ;
+exécute les migrations et le remplissage initial ; crée le lien `public/storage` ;
+compile les assets ; et dépose une sauvegarde SQL.
 
 ### Démarrage
 
@@ -41,9 +43,9 @@ recrée les fichiers `.env` ; installe les dépendances ; génère les clés
 
 | Adresse | Rôle |
 |---|---|
-| http://127.0.0.1:8001 | Site public |
-| http://127.0.0.1:8001/admin | Administration |
-| http://127.0.0.1:8000/api/v1/site | API backend |
+| http://127.0.0.1:8000 | Site public |
+| http://127.0.0.1:8000/admin | Administration |
+| http://127.0.0.1:8000/api/v1/site | API publique |
 
 MySQL doit tourner. Pour l'arrêter :
 
@@ -51,9 +53,14 @@ MySQL doit tourner. Pour l'arrêter :
 .\demarrer.ps1 -Stop
 ```
 
+> **Ces deux scripts servent uniquement au développement sur Windows.** Ils ne
+> sont pas nécessaires au site en ligne et ne bloquent aucun déploiement : un
+> hébergeur démarre l'application avec ses propres commandes (voir section 9).
+
 > **Après un reformatage du disque**, relancer `.\installer.ps1` restaure
 > l'environnement. Les données du site sont dans MySQL ; une sauvegarde manuelle
-> se fait avec `php backend\backup_database.php` (dossier `backend\storage\backups`).
+> se fait avec `php geraldoportfolio\backup_database.php` (dossier
+> `geraldoportfolio\storage\backups`).
 
 ---
 
@@ -61,10 +68,10 @@ MySQL doit tourner. Pour l'arrêter :
 
 | Outil | Version |
 |---|---|
-| PHP | 8.2 ou supérieur (extensions `pdo_mysql`, `mbstring`, `openssl`, `curl`, `fileinfo`) |
+| PHP | 8.2 ou supérieur (extensions `pdo_mysql` ou `pdo_pgsql`, `mbstring`, `openssl`, `curl`, `fileinfo`) |
 | Composer | 2.x |
 | Node.js | 18 ou supérieur (avec NPM) |
-| MySQL / MariaDB | 5.7+ / 10.4+ |
+| Base de données | MySQL / MariaDB 5.7+ / 10.4+, ou PostgreSQL, ou SQLite |
 
 Paramètres modifiables : `.\installer.ps1 -DbUser root -DbPassword secret -DbName geraldo_portfolio`
 
@@ -88,12 +95,12 @@ demande le mot de passe actuel, puis le nouveau saisi deux fois (8 caractères
 minimum). Par sécurité, toutes les sessions sont fermées et il faut se
 reconnecter avec le nouveau mot de passe.
 
-> **Le mot de passe initial est défini dans `backend/database/seeders/DatabaseSeeder.php`**.
+> **Le mot de passe initial est défini dans `geraldoportfolio/database/seeders/DatabaseSeeder.php`**.
 > **Changez-le immédiatement à la première connexion** via *Tableau de bord → Mot de passe*.
 > En cas d'oubli, réinitialisez en ligne de commande :
 >
 > ```powershell
-> cd backend
+> cd geraldoportfolio
 > php artisan tinker --execute="App\Models\User::find(1)->update(['password' => 'VotreNouveauMotDePasse2026']);"
 > ```
 
@@ -102,7 +109,7 @@ reconnecter avec le nouveau mot de passe.
 ## 4. Sauvegardes
 
 ```powershell
-cd backend
+cd geraldoportfolio
 php backup_database.php          # sauvegarder
 php backup_database.php --list   # voir les sauvegardes disponibles
 ```
@@ -122,7 +129,7 @@ Chaque sauvegarde produit **deux fichiers indissociables** :
 ### Restauration
 
 ```powershell
-cd backend
+cd geraldoportfolio
 php backup_database.php --restore storage\backups\geraldo_portfolio_AAAA-MM-JJ_HH-MM-SS.sql
 ```
 
@@ -139,24 +146,24 @@ refuse les chemins contenant `..`.
 
 ## 5. Contrôle de bon fonctionnement
 
-Les deux serveurs doivent tourner :
+Le serveur doit tourner (`.\demarrer.ps1`).
 
 ```powershell
-php verify_cc.php                    # conformité au cahier des charges
-php backend\verify_api.php           # audit de l'API backend
-php backend\verify_password.php      # changement de mot de passe administrateur
-php frontend\verify_frontend.php     # site public et administration
-php frontend\verify_extra_phones.php # numéros supplémentaires et WhatsApp
+cd geraldoportfolio
+php artisan test               # suite de tests automatique (31 tests)
+php verify_password.php        # changement de mot de passe administrateur
+php verify_email.php           # rendu et envoi réel des e-mails de demande
 ```
 
-État au dernier passage : `90 conformes / 0 à corriger / 12 à valider`,
-`42/0` côté API, `15/0` côté mot de passe, `121/0` côté frontend, `29/0` côté
-numéros.
-
-> **Audit du mot de passe.** `verify_password.php` crée un compte
-> administrateur temporaire, joue le changement de mot de passe de bout en
-> bout, puis supprime le compte. Il ne touche jamais au vrai mot de passe :
-> le lancer sur une installation en production est sans risque.
+- `php artisan test` vérifie le rendu des pages, les couleurs de marque, les
+  liens de contact, le relais d'images et les services internes sans dépendre
+  d'une base externe (SQLite en mémoire).
+- `verify_password.php` crée un compte administrateur temporaire, joue le
+  changement de mot de passe de bout en bout via l'API, puis supprime le
+  compte. Il ne touche jamais au vrai mot de passe : le lancer sur une
+  installation en production est sans risque.
+- `verify_email.php` rend le gabarit d'e-mail, affiche la configuration SMTP
+  active et tente un envoi réel.
 
 > **Téléphone des clients.** Le client choisit son pays puis saisit son numéro
 > national, et les deux sont conservés : l'indicatif change la conversion, donc
@@ -183,22 +190,12 @@ numéros.
 
 Deux précautions :
 
-- les audits du frontend et des numéros s'envoient entre eux des
-  demandes via l'API, qui est limitée à **5 appels/minute/IP**. Les laisser
-  s'exécuter coup sur coup produit des `429` aléatoires : attendre une
-  minute entre les deux.
-- les audits modifient le contenu du site (titre, accroche, coordonnées)
+- l'API publique limite les demandes à **5 appels/minute/IP** ; enchaîner
+  plusieurs audits coup sur coup peut produire des `429` aléatoires : attendre
+  une minute entre deux.
+- certains audits modifient le contenu du site (titre, accroche, coordonnées)
   puis le restaurent. Prendre une sauvegarde avant de les lancer sur une
   installation en production.
-
-### Piège : les réglages ne sont plus écrasés
-
-`PUT /api/v1/admin/settings` n'écrit que les clés réellement transmises.
-Un envoi partiel ne vide donc plus les photos, l'accroche ni le SEO — ce
-qui arrivait auparavant et faisait perdre le contenu du site. Corollaire :
-pour supprimer toute la liste des numéros supplémentaires, le formulaire
-envoie le marqueur `extra_phones_present`, car une liste vide ne produit
-aucun champ `extra_phones[...]`.
 
 ---
 
@@ -231,7 +228,7 @@ SMTP externe. Trois solutions, toutes gratuites :
    Mots de passe d'application**.
 4. Générer un mot de passe d'application nommé `Site portfolio` → Google
    affiche **16 caractères** à copier une seule fois.
-5. Renseigner `backend/.env` :
+5. Renseigner `geraldoportfolio/.env` :
 
    ```
    MAIL_USERNAME=geraldoagonse@gmail.com
@@ -242,7 +239,7 @@ SMTP externe. Trois solutions, toutes gratuites :
 
    ```powershell
    .\demarrer.ps1 -Stop ; .\demarrer.ps1
-   cd backend ; php verify_email.php
+   cd geraldoportfolio ; php verify_email.php
    ```
 
    `Envoi reel : reussi` confirme que tout est branché.
@@ -268,10 +265,10 @@ adresse vérifiée chez Brevo.
 
 Reste à faire, hors développement :
 
-- achat du domaine et hébergement, puis mise à jour de `APP_URL` et `API_URL` ;
+- achat du domaine et hébergement, puis mise à jour de `APP_URL` ;
 - certificat HTTPS et redirection `http` → `https` ;
-- `APP_DEBUG=false` dans `backend/.env` **et** `frontend/.env` : avec `true`,
-  une erreur affiche le détail technique aux visiteurs ;
+- `APP_DEBUG=false` dans `geraldoportfolio/.env` : avec `true`, une erreur
+  affiche le détail technique aux visiteurs ;
 - identifiants SMTP (section 6) — facultatif, le site fonctionne sans ;
 - **changement du mot de passe administrateur** (défini dans `DatabaseSeeder.php`, à changer via l'interface d'administration) ;
 - mesure d'audience et Search Console ;
@@ -279,126 +276,76 @@ Reste à faire, hors développement :
 
 ---
 
-## 8. Mise en ligne sur Render
+## 8. Variables d'environnement
 
-Render ne propose plus de runtime PHP : les deux applications sont donc
-livrées en conteneur (`Dockerfile` à la racine de `backend/` et de
-`frontend/`). Aucun `.env` n'est copié dans l'image (`.dockerignore`) :
-**toute la configuration passe par les variables d'environnement Render**.
+L'application lit sa configuration dans `geraldoportfolio/.env` en local, et
+dans les variables d'environnement du serveur en ligne. Celles qui comptent :
 
-### 8.1 Les trois ressources à créer, dans cet ordre
+| Variable | Rôle | Exemple |
+|---|---|---|
+| `APP_KEY` | Clé de chiffrement (sessions, cookies). **Obligatoire.** | `php artisan key:generate --show` |
+| `APP_URL` | Adresse publique du site (liens, images, mails). | `https://mon-domaine.com` |
+| `APP_DEBUG` | `false` en ligne (sinon une erreur montre le code). | `false` |
+| `APP_ENV` | `production` en ligne. | `production` |
+| `DB_CONNECTION` | Type de base : `mysql`, `pgsql` ou `sqlite`. | `mysql` |
+| `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | Connexion à la base. | — |
+| `DB_URL` | Alternative : chaîne de connexion complète. | `postgres://user:pass@host/db` |
+| `MAIL_*` | Envoi des demandes (section 6). | — |
 
-Ordre imposé : la base d'abord (l'API en a besoin), puis l'API (le site en a
-besoin). **Région identique pour les trois** (sinon pas de réseau privé).
+> Beaucoup d'hébergeurs fournissent déjà `DATABASE_URL` : l'application sait la
+> traduire automatiquement en connexion, sans configuration supplémentaire.
 
-**Étape 1 — la base `portfolio-db`**
-
-1. Render Dashboard → **New → PostgreSQL**.
-2. *Name* : `portfolio-db` — *Region* : au choix — *Instance* : **Free**.
-3. **Create Database**, attendre l'état **Available**.
-4. Onglet **Connect** → copier l'**Internal Database URL**.
-
-**Étape 2 — l'API `portfolio-api`**
-
-1. **New → Web Service** → *Build and deploy from a Git repository* →
-   dépôt `portfolio-geraldo-agonse` → **Connect**.
-2. Champs du formulaire :
-
-   | Champ | Valeur |
-   |---|---|
-   | Name | `portfolio-api` |
-   | Branch | `master` |
-   | Region | la même que la base |
-   | Root Directory | `backend` |
-   | Language | **Docker** |
-   | Dockerfile Path | `Dockerfile` (valeur par défaut, ne pas changer) |
-   | Instance Type | **Free** |
-
-3. **Advanced → Environment Variables** : ajouter
-
-   | Key | Value |
-   |---|---|
-   | `DATABASE_URL` | Internal Database URL de l'étape 1 |
-   | `APP_KEY` | `php artisan key:generate --show` lancé dans `backend/` |
-   | `APP_DEBUG` | `false` |
-
-4. **Advanced → Health Check Path** : `/health`.
-5. **Create Web Service** (build 3 à 6 min : Composer, migrations, seed).
-6. Dès que le service est **Live**, copier son URL
-   (`https://portfolio-api-xxxx.onrender.com`) → onglet **Environment** →
-   ajouter `APP_URL` = cette URL → **Save Changes** (relance un déploiement).
-
-**Étape 3 — le site `portfolio-web`**
-
-1. **New → Web Service** → même dépôt → mêmes champs, avec
-   Root Directory `frontend` et Name `portfolio-web`.
-2. **Advanced → Environment Variables** :
-
-   | Key | Value |
-   |---|---|
-   | `API_URL` | URL de `portfolio-api` (sans `/api/v1`) |
-   | `APP_KEY` | une **autre** clé générée dans `frontend/` |
-   | `APP_DEBUG` | `false` |
-
-3. **Advanced → Health Check Path** : `/health`.
-4. **Create Web Service**, puis ajouter `APP_URL` = URL du site comme à
-   l'étape 2.6.
-
-Le premier service en erreur affiche les logs : c'est là qu'apparaît la
-variable oubliée (section 8.3).
-
-### 8.2 Variables d'environnement — récapitulatif
-
-`portfolio-api` (backend) :
-
-| Variable | Valeur |
-|---|---|
-| `DATABASE_URL` | Internal Database URL (colée à l'étape 1) |
-| `APP_URL` | `https://portfolio-api-xxxx.onrender.com` |
-| `APP_KEY` | `php artisan key:generate --show` dans `backend/` |
-| `APP_DEBUG` | `false` |
-| `APP_NAME` | optionnel : défaut déjà fourni par le conteneur |
-
-`portfolio-web` (frontend) :
-
-| Variable | Valeur |
-|---|---|
-| `API_URL` | URL du backend, **sans** `/api/v1` |
-| `APP_URL` | `https://portfolio-web-xxxx.onrender.com` |
-| `APP_KEY` | une clé différente, générée dans `frontend/` |
-| `APP_DEBUG` | `false` |
-| `APP_NAME` | optionnel : défaut déjà fourni par le conteneur |
-
-Génération des clés (sur la machine de développement) :
+Génération de la clé :
 
 ```powershell
-cd backend  ; php artisan key:generate --show   # → portfolio-api
-cd frontend ; php artisan key:generate --show   # → portfolio-web
+cd geraldoportfolio ; php artisan key:generate --show
 ```
 
-Le démarrage génère une clé automatiquement si `APP_KEY` est absente, mais
-chaque redéploiement en créerait une nouvelle : les sessions d'administration
-seraient alors perdues. **Renseigner `APP_KEY` évite ça.**
+En ligne, générer une clé **une seule fois** et la conserver : sinon chaque
+redéploiement fermerait les sessions d'administration.
 
-Toute modification d'une variable déclenche automatiquement un nouveau
-déploiement (bouton **Save Changes**).
+---
 
-### 8.3 Points d'attention
+## 9. Déploiement
 
-- **Sans `API_URL`**, le site est vide : c'est la seule variable vraiment
-  indispensable côté frontend (l'erreur apparaît en premier au chargement).
-- **Images téléversées** : le disque du conteneur est effacé à chaque
-  redéploiement. Les photos déposées depuis l'administration disparaissent
-  donc au déploiement suivant — pour les conserver, attacher un *Disk* Render
-  monté sur `storage/app/public` dans `portfolio-api`.
-- **SMTP** : les variables `MAIL_*` (section 6) se déclarent aussi dans
-  Render. Sans elles, les demandes de contact restent visibles dans
-  l'administration mais aucun mail n'est envoyé.
-- **Mot de passe admin** : changer dès la première connexion (le compte est
-  créé par le seeder à chaque démarrage, sans écraser le mot de passe déjà
-  défini).
-- **Plan gratuit** : le service s'endort après inactivité, le premier
-  chargement est alors lent (~30 s) ; une requête de santé l'éveille.
-- **Déploiements suivants** : Render surveille la branche `master` du dépôt —
-  tout `git push` sur `master` déclenche un nouveau build des deux services
-  (un changement hors de `backend/` ne redéploie que le site, et inversement).
+Le code ne dépend d'**aucun hébergeur en particulier**. Il vous faut simplement :
+
+1. un environnement **PHP 8.2+** (avec `composer`) ;
+2. une **base de données** (MySQL, PostgreSQL ou SQLite) ;
+3. définir les variables de la section 8 (`APP_KEY`, `APP_URL`, `APP_DEBUG=false`, connexion base, éventuellement `MAIL_*`).
+
+### Option A — Hébergement conteneurisé (Docker)
+
+Un `Dockerfile` est fourni dans `geraldoportfolio/`. Il installe PHP, Composer
+et les bonnes extensions, puis, à chaque démarrage : migrations, remplissage
+initial et `storage:link`.
+
+- Dossier racine du service : `geraldoportfolio`
+- Port d'écoute : celui annoncé par la variable `PORT` (8080 par défaut)
+- Contrôle de santé : `/health` (répond `ok` sans toucher à la base)
+
+> **Images téléversées.** Le disque d'un conteneur est effacé à chaque
+> redéploiement : les photos ajoutées depuis l'administration disparaissent.
+> Pour les conserver, monter un volume persistant sur
+> `geraldoportfolio/storage/app/public`.
+
+### Option B — Hébergement PHP classique (mutualisé, VPS)
+
+1. Transférer le dossier `geraldoportfolio/`.
+2. Faire pointer la racine web du domaine sur `geraldoportfolio/public`.
+3. En ligne de commande, dans `geraldoportfolio/` :
+
+   ```bash
+   composer install --no-dev --optimize-autoloader
+   php artisan key:generate --force        # une seule fois, ou définir APP_KEY
+   php artisan migrate --force
+   php artisan db:seed --force
+   php artisan storage:link
+   php artisan config:cache
+   ```
+
+4. Créer le fichier `.env` (ou définir les variables) selon la section 8.
+
+En production, `APP_DEBUG=false` et `APP_URL` = votre domaine. Le serveur doit
+avoir les droits d'écriture sur `geraldoportfolio/storage` et
+`geraldoportfolio/bootstrap/cache`.
