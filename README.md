@@ -287,13 +287,15 @@ dans les variables d'environnement du serveur en ligne. Celles qui comptent :
 | `APP_URL` | Adresse publique du site (liens, images, mails). | `https://mon-domaine.com` |
 | `APP_DEBUG` | `false` en ligne (sinon une erreur montre le code). | `false` |
 | `APP_ENV` | `production` en ligne. | `production` |
-| `DB_CONNECTION` | Type de base : `mysql`, `pgsql` ou `sqlite`. | `mysql` |
-| `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | Connexion à la base. | — |
-| `DB_URL` | Alternative : chaîne de connexion complète. | `postgres://user:pass@host/db` |
+| `DB_CONNECTION` | Type de base : `mysql` (le projet), `pgsql` ou `sqlite`. | `mysql` |
+| `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | Connexion à la base. | `127.0.0.1`, `3306`, `geraldo_portfolio`, `root`, — |
+| `DB_URL` | Alternative : chaîne de connexion complète. | `mysql://user:pass@host/db` |
 | `MAIL_*` | Envoi des demandes (section 6). | — |
 
-> Beaucoup d'hébergeurs fournissent déjà `DATABASE_URL` : l'application sait la
-> traduire automatiquement en connexion, sans configuration supplémentaire.
+> **La base du projet est MySQL.** En local, `installer.ps1` crée la base
+> `geraldo_portfolio` et renseigne le `.env`. En ligne, indiquer `DB_CONNECTION=mysql`
+> avec les identifiants de l'hébergeur (ou une `DB_URL`/`DATABASE_URL` en
+> `mysql://…`). PostgreSQL et SQLite restent possibles.
 
 Génération de la clé :
 
@@ -316,9 +318,11 @@ Le code ne dépend d'**aucun hébergeur en particulier**. Il vous faut simplemen
 
 ### Option A — Hébergement conteneurisé (Docker)
 
-Un `Dockerfile` est fourni dans `geraldoportfolio/`. Il installe PHP, Composer
-et les bonnes extensions, puis, à chaque démarrage : migrations, remplissage
-initial et `storage:link`.
+Un `Dockerfile` est fourni dans `geraldoportfolio/`. Il compile les assets
+(`npm run build`), installe PHP, Composer et les extensions de base de données
+(`pdo_mysql`, `pdo_pgsql`, `pdo_sqlite`), puis, à chaque démarrage : migrations,
+remplissage initial et `storage:link`. Rien à compiler soi-même : l'image est
+prête à servir.
 
 - Dossier racine du service : `geraldoportfolio`
 - Port d'écoute : celui annoncé par la variable `PORT` (8080 par défaut)
@@ -337,6 +341,12 @@ initial et `storage:link`.
 
    ```bash
    composer install --no-dev --optimize-autoloader
+
+   # Compilation des styles et scripts (indispensable : sinon erreur 500).
+   # Si l'hébergeur n'a pas Node.js, compiler d'abord sur votre PC
+   # (npm ci && npm run build) puis transférer le dossier public/build.
+   npm ci && npm run build
+
    php artisan key:generate --force        # une seule fois, ou définir APP_KEY
    php artisan migrate --force
    php artisan db:seed --force
@@ -349,3 +359,8 @@ initial et `storage:link`.
 En production, `APP_DEBUG=false` et `APP_URL` = votre domaine. Le serveur doit
 avoir les droits d'écriture sur `geraldoportfolio/storage` et
 `geraldoportfolio/bootstrap/cache`.
+
+> **Photos.** Les images téléversées depuis l'administration ne sont **pas**
+> dans le dépôt de code (dossier `storage/app/public/uploads`). En transférant
+> le site, il faut soit les recopier à l'identique, soit les re-téléverser
+> depuis l'administration.

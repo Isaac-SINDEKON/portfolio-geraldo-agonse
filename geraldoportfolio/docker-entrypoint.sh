@@ -12,23 +12,31 @@ export APP_DEBUG="${APP_DEBUG:-false}"
 export APP_NAME="${APP_NAME:-Portfolio Geraldo Perridys AGONSE}"
 
 # Reconnait les conventions courantes des hebergeurs (aucune n'est imposee) :
-#   - APP_URL     : adresse publique du site (liens, images, mails). A definir
-#                   chez l'hebergeur, sinon Laravel utilise config('app.url').
-#   - DATABASE_URL : chaine de connexion complete (PostgreSQL, MySQL...).
-#                    Beaucoup de plateformes la fournissent ; on la traduit en
-#                    connexion Laravel. Sans base, repli sur SQLite locale
-#                    (perdue au redemarrage).
+#   - APP_URL      : adresse publique du site (liens, images, mails). A definir
+#                    chez l'hebergeur, sinon Laravel utilise config('app.url').
+#   - DATABASE_URL : chaine de connexion complete, fournie par beaucoup de
+#                    plateformes ; on la traduit en DB_URL pour Laravel.
 if [ -z "$DB_URL" ] && [ -n "$DATABASE_URL" ]; then
     DB_URL="$DATABASE_URL"
     export DB_URL
 fi
 
+# Type de base : DB_CONNECTION explicite d'abord, sinon le schema de DB_URL,
+# sinon MySQL des qu'un hote est fourni, sinon SQLite (perdue au redemarrage).
 if [ -z "$DB_CONNECTION" ]; then
-    if [ -n "$DB_URL" ] || [ -n "$DB_HOST" ]; then
-        DB_CONNECTION="pgsql"
-    else
-        DB_CONNECTION="sqlite"
-    fi
+    case "$DB_URL" in
+        postgres://*|postgresql://*) DB_CONNECTION="pgsql" ;;
+        mysql://*|mariadb://*)       DB_CONNECTION="mysql" ;;
+        sqlite://*|sqlite:*)         DB_CONNECTION="sqlite" ;;
+        "")
+            if [ -n "$DB_HOST" ]; then
+                DB_CONNECTION="mysql"
+            else
+                DB_CONNECTION="sqlite"
+            fi
+            ;;
+        *) DB_CONNECTION="mysql" ;;
+    esac
     export DB_CONNECTION
 fi
 

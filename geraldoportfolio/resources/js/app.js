@@ -1,5 +1,5 @@
 /**
- * Portfolio Géraldo Perridys AGONSE - Frontend
+ * Portfolio Géraldo Perridys AGONSE - Scripts du site
  *
  * Tailwind est compile via Vite, Livewire (avec Alpine.js) gere l'interactivite.
  *

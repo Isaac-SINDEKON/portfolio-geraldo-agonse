@@ -4,6 +4,8 @@
 .env.*
 vendor
 node_modules
+# Les assets sont compiles dans l'image (etape "assets" du Dockerfile).
+public/build
 *.log
 storage/logs/*
 storage/framework/cache/*
